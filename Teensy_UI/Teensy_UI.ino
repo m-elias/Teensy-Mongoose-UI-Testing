@@ -31,7 +31,7 @@ struct settings settings_global = {
   0,      // int work_input
   50,     // int work_thres
   5,      // int work_hyst
-  false,  // bool work_invert
+  true,  // bool work_invert
   2,      // ui refresh rate
   "AiO GUI v5.12"  // char fversion[40]
 };
@@ -39,7 +39,7 @@ struct settings settings_global = {
 const uint8_t WORK_HYST_LOOKUP[6] = {1,2,3,5,8,12};
 const uint8_t UI_UPDATE_RATE_LOOKUP[4] = {1,2,4,8};
 
-const uint16_t EE_IDENT = 2405;
+const uint16_t EE_IDENT = 2406;
 
 #define WAS_PIN         A15     // WAS input
 #define STEER_PIN         2     // STEER input
@@ -87,32 +87,25 @@ void setup() {
 
 }
 
-/*
-  data->steer_state = !data->steer_state;
-  data->work_input = random() / 42949673; // 0xFFFFFFFF ("long" random() full scale)
-  if (data->work_input > data->work_thres + data->work_hyst) data->work_state = true;
-  if (data->work_input < data->work_thres - data->work_hyst) data->work_state = false;
-*/
-
-
 void loop() {
   mongoose_poll();
 
   static elapsedMillis workTimer = 0;
   if (workTimer > 200) {
     workTimer = 0;
+    static bool workState = 0;
     float read = float(analogRead(WAS_PIN)) / 10.24; // convert to 0-100 percent (/1024*100)
 
     glue_get_settings(&settings_global);
 
     if (read < settings_global.work_thres - WORK_HYST_LOOKUP[settings_global.work_hyst]) {
-      settings_global.work_state = LOW;
-      if (settings_global.work_invert) settings_global.work_state = !settings_global.work_state;
+      workState = LOW;
     }
     if (read > settings_global.work_thres + WORK_HYST_LOOKUP[settings_global.work_hyst]) {
-      settings_global.work_state = HIGH;
-      if (settings_global.work_invert) settings_global.work_state = !settings_global.work_state;
+      workState = HIGH;
     }
+    settings_global.work_state = (!workState != !settings_global.work_invert);  // XOR the work state logic with invert setting
+
     settings_global.work_input = round(read);
     glue_set_settings(&settings_global);
 
@@ -122,7 +115,7 @@ void loop() {
     updateState++;
     if (updateState >= UI_UPDATE_RATE_LOOKUP[settings_global.ui_refresh_rate]) {
       glue_update_state();
-      Serial << "\r\n" << millis() << " ui update (" << UI_UPDATE_RATE_LOOKUP[settings_global.ui_refresh_rate] << ")";
+      Serial << "" << millis() << " ui update (" << UI_UPDATE_RATE_LOOKUP[settings_global.ui_refresh_rate] << ")\r\n";
       updateState = 0;
     }
 
