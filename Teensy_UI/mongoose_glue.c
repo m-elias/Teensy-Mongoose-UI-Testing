@@ -15,32 +15,6 @@ void glue_init(void) {
   MG_DEBUG(("Custom init done"));
 }
 
-// This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
-void glue_websocket_on_timer(struct mg_connection *c) {
-  static uint64_t timer_work_input = 0;
-  static uint64_t timer_work_state = 0;
-  static uint64_t timer_test = 0;
-  uint64_t now = mg_millis();
-
-  // Prevent stale connections to grow infinitely
-  if (c->send.len > 1024) return;
-
-  // Send updates to "websocket.voltage" value every 200 milliseconds
-  /*if (mg_timer_expired(&timer_work_input, 200, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %u}", MG_ESC("work_input"), s_settings.work_input);
-  }*/
-
-  // Send updates to "websocket.pressure" value every 100 milliseconds
-  /*if (mg_timer_expired(&timer_work_state, 100, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %u}", MG_ESC("work_state"), s_settings.work_state);
-  }*/
-
-  if (mg_timer_expired(&timer_test, 1000, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %s}", MG_ESC("test"), "hello world");
-  }
-}
-
-
 // save_ip
 static uint64_t s_action_timeout_save_ip;  // Time when save_ip ends
 bool glue_check_save_ip(void) {
@@ -57,8 +31,18 @@ bool glue_check_reboot(void) {
   return s_action_timeout_reboot > mg_now(); // Return true if reboot is in progress
 }
 void glue_start_reboot(void) {
-  s_action_timeout_reboot = mg_now() + 250; // Start reboot, finish after 6 seconds
+  s_action_timeout_reboot = mg_now() + 1000; // Start reboot, finish after 1 second
   SCB_AIRCR = 0x05FA0004; // Teensy reboot
+}
+
+// dec_work_thres
+static uint64_t s_action_timeout_dec_work_thres;  // Time when dec_work_thres ends
+bool glue_check_dec_work_thres(void) {
+  return s_action_timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
+}
+void glue_start_dec_work_thres(void) {
+  s_action_timeout_dec_work_thres = mg_now() + 100; // Start dec_work_thres, finish after 1 second
+  if(s_settings.work_thres > 0) s_settings.work_thres -= 1;
 }
 
 // set_work_thres
@@ -71,6 +55,16 @@ void glue_start_set_work_thres(void) {
   s_settings.work_thres = s_settings.work_input;
 }
 
+// inc_work_thres
+static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres ends
+bool glue_check_inc_work_thres(void) {
+  return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
+}
+void glue_start_inc_work_thres(void) {
+  s_action_timeout_inc_work_thres = mg_now() + 100; // Start inc_work_thres, finish after 1 second
+  if(s_settings.work_thres < 100) s_settings.work_thres += 1;
+}
+
 // set_work_digital
 static uint64_t s_action_timeout_set_work_digital;  // Time when set_work_digital ends
 bool glue_check_set_work_digital(void) {
@@ -79,7 +73,8 @@ bool glue_check_set_work_digital(void) {
 void glue_start_set_work_digital(void) {
   s_action_timeout_set_work_digital = mg_now() + 250; // Start set_work_digital, finish after 250ms
   s_settings.work_thres = 50;
-  s_settings.work_hyst = 5;  
+  s_settings.work_hyst = 5;
+  s_settings.work_invert = true;  
 }
 
 // firmware_update

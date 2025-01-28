@@ -11,28 +11,6 @@ void glue_init(void) {
   MG_DEBUG(("Custom init done"));
 }
 
-// This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
-void glue_websocket_on_timer(struct mg_connection *c) {
-  static uint64_t timer_voltage = 0;
-  static uint64_t timer_pressure = 0;
-  uint64_t now = mg_millis();
-
-  // Prevent stale connections to grow infinitely
-  if (c->send.len > 1024) return;
-
-  // Send updates to "websocket.voltage" value every 200 milliseconds
-  if (mg_timer_expired(&timer_voltage, 200, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("voltage"),
-                 now % 9999);
-  }
-
-  // Send updates to "websocket.pressure" value every 5000 milliseconds
-  if (mg_timer_expired(&timer_pressure, 5000, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("pressure"), now);
-  }
-}
-
-
 // save_ip
 static uint64_t s_action_timeout_save_ip;  // Time when save_ip ends
 bool glue_check_save_ip(void) {
@@ -51,6 +29,15 @@ void glue_start_reboot(void) {
   s_action_timeout_reboot = mg_now() + 1000; // Start reboot, finish after 1 second
 }
 
+// dec_work_thres
+static uint64_t s_action_timeout_dec_work_thres;  // Time when dec_work_thres ends
+bool glue_check_dec_work_thres(void) {
+  return s_action_timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
+}
+void glue_start_dec_work_thres(void) {
+  s_action_timeout_dec_work_thres = mg_now() + 1000; // Start dec_work_thres, finish after 1 second
+}
+
 // set_work_thres
 static uint64_t s_action_timeout_set_work_thres;  // Time when set_work_thres ends
 bool glue_check_set_work_thres(void) {
@@ -58,6 +45,15 @@ bool glue_check_set_work_thres(void) {
 }
 void glue_start_set_work_thres(void) {
   s_action_timeout_set_work_thres = mg_now() + 1000; // Start set_work_thres, finish after 1 second
+}
+
+// inc_work_thres
+static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres ends
+bool glue_check_inc_work_thres(void) {
+  return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
+}
+void glue_start_inc_work_thres(void) {
+  s_action_timeout_inc_work_thres = mg_now() + 1000; // Start inc_work_thres, finish after 1 second
 }
 
 // set_work_digital

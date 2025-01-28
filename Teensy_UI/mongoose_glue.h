@@ -16,7 +16,7 @@ extern "C" {
 #define WIZARD_ENABLE_HTTP_UI 1
 #define WIZARD_ENABLE_HTTP_UI_LOGIN 0
 
-#define WIZARD_ENABLE_WEBSOCKET 1
+#define WIZARD_ENABLE_WEBSOCKET 0
 #define WIZARD_WEBSOCKET_TIMER_MS 50
 
 #define WIZARD_ENABLE_MQTT 0
@@ -66,15 +66,16 @@ void glue_update_state(void);
 
 // Firmware Glue
 
-
-void glue_websocket_on_timer(struct mg_connection *c);
-
 bool glue_check_save_ip(void);
 void glue_start_save_ip(void);
 bool glue_check_reboot(void);
 void glue_start_reboot(void);
+bool glue_check_dec_work_thres(void);
+void glue_start_dec_work_thres(void);
 bool glue_check_set_work_thres(void);
 void glue_start_set_work_thres(void);
+bool glue_check_inc_work_thres(void);
+void glue_start_inc_work_thres(void);
 bool glue_check_set_work_digital(void);
 void glue_start_set_work_digital(void);
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);

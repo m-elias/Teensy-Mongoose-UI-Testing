@@ -81,6 +81,7 @@ void setup() {
   long num = random();
   Serial.println((num));
   Serial.println(u_int(num));
+  Serial.println(int(num));
   //Serial.println(byte(num));
   //Serial.println(u_long(0xFFFFFFFF));
   Serial.println(float(num) / 0xFFFFFFFF, 3);
@@ -91,8 +92,8 @@ void loop() {
   mongoose_poll();
 
   static elapsedMillis workTimer = 0;
-  if (workTimer > 200) {
-    workTimer = 0;
+  if (workTimer > 99) { // 10hz
+    workTimer -= 100;   // try to maintain steady 10hz
     static bool workState = 0;
     float read = float(analogRead(WAS_PIN)) / 10.24; // convert to 0-100 percent (/1024*100)
 
@@ -108,29 +109,8 @@ void loop() {
 
     settings_global.work_input = round(read);
     glue_set_settings(&settings_global);
+    glue_update_state();  // triggers UI update, max 1hz regardless of Wizard setting?
 
-    
-
-    static uint8_t updateState = 0;
-    updateState++;
-    if (updateState >= UI_UPDATE_RATE_LOOKUP[settings_global.ui_refresh_rate]) {
-      glue_update_state();
-      Serial << "" << millis() << " ui update (" << UI_UPDATE_RATE_LOOKUP[settings_global.ui_refresh_rate] << ")\r\n";
-      updateState = 0;
-    }
-
-    /*static elapsedMillis glueUpdateStateTimer = 0;
-    if (glueUpdateStateTimer > 999) {
-      glueUpdateStateTimer = 0;
-      glue_update_state();
-    }*/
-
-    /*Serial << "\r\n" << read << " " << settings_global.work_thres << " " << WORK_HYST_LOOKUP[settings_global.work_hyst] << " "
-      << settings_global.work_input << " " << settings_global.work_state << " " << settings_global.work_invert;
-
-    Serial.printf("{%s: %u}", "work_input", settings_global.work_input);
-    Serial.printf("{%s: %u}", "work_state", settings_global.work_state);
-    */
   }
 
 

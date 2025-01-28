@@ -97,7 +97,9 @@ struct attribute s_settings_attributes[] = {
 static struct apihandler s_apihandlers[] = {
   {"save_ip", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_save_ip, glue_start_save_ip, NULL, 0},
   {"reboot", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_reboot, glue_start_reboot, NULL, 0},
+  {"dec_work_thres", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_dec_work_thres, glue_start_dec_work_thres, NULL, 0},
   {"set_work_thres", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_set_work_thres, glue_start_set_work_thres, NULL, 0},
+  {"inc_work_thres", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_inc_work_thres, glue_start_inc_work_thres, NULL, 0},
   {"set_work_digital", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_set_work_digital, glue_start_set_work_digital, NULL, 0},
   {"firmware_update", "ota", false, 3, 7, 0UL, NULL, NULL, NULL, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update, NULL, NULL, NULL, 0},
   {"settings", "data", false, 3, 7, 0UL, s_settings_attributes, (void (*)(void *)) glue_get_settings, (void (*)(void *)) glue_set_settings, NULL, NULL, NULL, NULL, NULL, NULL, sizeof(struct settings)}
