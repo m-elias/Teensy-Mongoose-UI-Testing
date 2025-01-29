@@ -64,7 +64,7 @@
         "work_state": {"type": "bool", "value": false}, 
         "work_input": {"type": "int", "value": 33}, 
         "work_thres": {"type": "int", "value": 50}, 
-        "work_hyst": {"type": "int", "value": 3}, 
+        "work_hyst": {"type": "int", "value": 3, "ui_value": 5}, 
         "work_invert": {"type": "bool", "value": false}, 
         "ui_refresh_rate": {"type": "int", "value": 4, "ui_value": 1}, 
         "fversion": {"type": "string", "value": "AiO GUI v5.12", "size": 40}
@@ -121,14 +121,14 @@
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Work Switch/Analog Input", "classes": "title"},
                       {"type": "container", "classes": "container-h", "css": "gap: 1em;", "layout": [
-                          {"type": "status", "ref": "settings.work_state", "labels": "OFF,ON", "css": "flex: 0 0 4em;"},
+                          {"type": "status", "ref": "${websocket.work_state}", "labels": "OFF,ON", "css": "flex: 0 0 4em;"},
                           {"classes": "container-h", "css": "min-width: 11em;"},
                           {"format": "Invert", "classes": "", "css": "flex: 0 0 2em;"},
                           {"type": "toggle", "ref": "settings.work_invert", "css": "flex: 0 0 2em;", "autosave": true}
                         ]},
                       {"type": "container", "classes": "container-h", "css": "gap: 1em;", "layout": [
                           {"format": "Input", "classes": "", "css": "flex: 0 0 5em;"},
-                          {"type": "progress", "ref": "settings.work_input", "min": 0, "max": "200", "color": "rgb(186,230,253)"}
+                          {"type": "progress", "ref": "${websocket.work_input}", "min": 0, "max": "200", "color": "rgb(186,230,253)"}
                         ]},
                       {"type": "container", "classes": "container-h", "css": "gap: 1em;", "layout": [
                           {"format": "Threshold", "classes": "", "css": "flex: 0 0 5em;"},
@@ -142,7 +142,7 @@
                           {"type": "action", "title": "inc", "icon": "plus", "ref": "inc_work_thres"}
                         ], "css": "gap: 1em;"},
                       {"type": "container", "classes": "container-h", "layout": [
-                          {"type": "action", "title": "Set for Digital", "icon": "activity", "ref": "set_work_digital", "css": "min-width: 14em;"},
+                          {"type": "action", "title": "Set for Digital Mode", "icon": "activity", "ref": "set_work_digital", "css": "min-width: 14em;"},
                           {"classes": "container-h", "css": "min-width: 0em;"},
                           {"format": "Hysteresis", "classes": "", "css": "flex: 0 0 5em;", "type": "text"},
                           {"type": "dropdown", "ref": "settings.work_hyst", "options": "1,2,3,5,8,12", "css": "min-width: 5em;", "autosave": true}
@@ -152,7 +152,9 @@
                       {"type": "text", "format": "Autosteer Kickout", "classes": "title"},
                       {"type": "status", "ref": "settings.steer_state", "labels": "OFF,ON", "css": "flex: 0 0 2em;"}
                     ], "css": "flex: 0 0 0em;"},
-                  {"classes": "container-v"}
+                  {"classes": "container-v"},
+                  {"format": "Work State: ${websocket.work_state}", "classes": "", "css": "flex: 0 0 2em;", "type": "text"},
+                  {"format": "Work Input: ${websocket.work_input}", "classes": "", "css": "flex: 0 0 2em;", "type": "text"}
                 ]}
             ]}
         ], "level": "3"},
@@ -173,5 +175,5 @@
     ], 
     "buttons": "azure"
   }, 
-  "websocket": {"enable": false}
+  "websocket": {"enable": true}
 }

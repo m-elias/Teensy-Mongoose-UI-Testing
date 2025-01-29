@@ -15,6 +15,40 @@ void glue_init(void) {
   MG_DEBUG(("Custom init done"));
 }
 
+// This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
+void glue_websocket_on_timer(struct mg_connection *c) {
+  //static uint64_t timer_voltage = 0;
+  //static uint64_t timer_pressure = 0;
+  uint64_t now = mg_millis();
+  static uint64_t timer_work_state = 0;
+  static uint64_t timer_work_input = 0;
+
+  // Prevent stale connections to grow infinitely
+  if (c->send.len > 1024) return;
+
+  // Send updates to "websocket.voltage" value every 100 milliseconds
+  /*if (mg_timer_expired(&timer_voltage, 100, now)) {
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("voltage"),
+                 now % 9999);
+  }
+
+  // Send updates to "websocket.pressure" value every 5000 milliseconds
+  if (mg_timer_expired(&timer_pressure, 5000, now)) {
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("pressure"), now);
+  }*/
+
+  // Send updates to "websocket.work_state" value every 200 milliseconds
+  if (mg_timer_expired(&timer_work_state, 200, now)) {
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_state"), s_settings.work_state);
+  }
+
+  // Send updates to "websocket.work_state" value every 200 milliseconds
+  if (mg_timer_expired(&timer_work_input, 200, now)) {
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_input"), s_settings.work_input);
+  }
+
+}
+
 // save_ip
 static uint64_t s_action_timeout_save_ip;  // Time when save_ip ends
 bool glue_check_save_ip(void) {
