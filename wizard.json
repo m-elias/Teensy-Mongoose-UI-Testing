@@ -121,14 +121,14 @@
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Work Switch/Analog Input", "classes": "title"},
                       {"type": "container", "classes": "container-h", "css": "gap: 1em;", "layout": [
-                          {"type": "status", "ref": "${websocket.work_state}", "labels": "OFF,ON", "css": "flex: 0 0 4em;"},
+                          {"type": "status", "ref": "settings.work_state", "labels": "OFF,ON", "css": "flex: 0 0 4em;"},
                           {"classes": "container-h", "css": "min-width: 11em;"},
                           {"format": "Invert", "classes": "", "css": "flex: 0 0 2em;"},
                           {"type": "toggle", "ref": "settings.work_invert", "css": "flex: 0 0 2em;", "autosave": true}
                         ]},
                       {"type": "container", "classes": "container-h", "css": "gap: 1em;", "layout": [
                           {"format": "Input", "classes": "", "css": "flex: 0 0 5em;"},
-                          {"type": "progress", "ref": "${websocket.work_input}", "min": 0, "max": "200", "color": "rgb(186,230,253)"}
+                          {"type": "progress", "ref": "settings.work_input", "min": 0, "max": "200", "color": "rgb(186,230,253)"}
                         ]},
                       {"type": "container", "classes": "container-h", "css": "gap: 1em;", "layout": [
                           {"format": "Threshold", "classes": "", "css": "flex: 0 0 5em;"},
