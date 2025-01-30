@@ -9,7 +9,7 @@
 
 #include "mongoose_glue.h"
 
-static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, 4, "AiO Super v5.1 BLE"};
+static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, 4, "AiO GUI v5.12"};
 
 void glue_init(void) {
   MG_DEBUG(("Custom init done"));
