@@ -103,7 +103,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, 4, "AiO GUI v5.12"};
+static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, 4, "AiO Super v5.1 BLE"};
 void glue_get_settings(struct settings *data) {
   *data = s_settings;  // Sync with your device
 }
