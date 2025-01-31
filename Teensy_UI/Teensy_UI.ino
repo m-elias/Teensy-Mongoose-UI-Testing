@@ -1,18 +1,6 @@
 #include "mongoose_glue.h"
 #include <EEPROM.h>
 #include <Streaming.h>
-
-// Networking variables
-struct NetConfigStruct
-{
-  //static const uint8_t defaultIP[5] = {192, 168, 5, 126};
-  uint8_t currentIP[5] = {192, 168, 5, 126};
-  uint8_t gatewayIP[5] = {192, 168, 5, 1};
-  uint8_t broadcastIP[5] = {192, 168, 5, 255};
-};
-NetConfigStruct const defaultNet;
-NetConfigStruct netConfig = defaultNet;
-
 #include "mongoose_init.h"
 
 // globally available, working settings struct
@@ -32,14 +20,13 @@ struct settings settings_global = {
   50,     // int work_thres
   5,      // int work_hyst
   true,  // bool work_invert
-  2,      // ui refresh rate
   "AiO GUI v5.12"  // char fversion[40]
 };
 
 const uint8_t WORK_HYST_LOOKUP[6] = {1,2,3,5,8,12};
 const uint8_t UI_UPDATE_RATE_LOOKUP[4] = {1,2,4,8};
 
-const uint16_t EE_IDENT = 2406;
+const uint16_t EE_IDENT = 2407;
 
 #define WAS_PIN         A15     // WAS input
 #define STEER_PIN         2     // STEER input
@@ -108,8 +95,15 @@ void loop() {
     settings_global.work_state = (!workState != !settings_global.work_invert);  // XOR the work state logic with invert setting
 
     settings_global.work_input = round(read);
+    
     glue_set_settings(&settings_global);
     glue_update_state();  // triggers UI update, max 1hz regardless of Wizard setting?
+
+    char myThresText[101] = "----------------------------------------------------------------------------------------------------";
+    Serial.println(myThresText);
+    myThresText[settings_global.work_thres - WORK_HYST_LOOKUP[settings_global.work_hyst]] = '^';
+    myThresText[settings_global.work_thres + WORK_HYST_LOOKUP[settings_global.work_hyst]] = '^';
+    Serial.println(myThresText);
 
   }
 

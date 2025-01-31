@@ -97,7 +97,6 @@ struct settings {
   int work_thres;
   int work_hyst;
   bool work_invert;
-  int ui_refresh_rate;
   char fversion[40];
 };
 void glue_get_settings(struct settings *);

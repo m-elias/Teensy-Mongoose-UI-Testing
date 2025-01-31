@@ -7,24 +7,6 @@ void ENET_IRQHandler(void);
 uint64_t mg_millis(void) {
   return millis();
 }
-
-/*static uint32_t ipv4ary(const uint8_t input[])
-{
-    char buf[16];
-    mg_snprintf(buf, sizeof(buf), "%d.%d.%d.%d", input[0], input[1], input[2], input[3]);
-    struct mg_addr a = {};
-    mg_aton(mg_str(buf), &a);
-    return *(uint32_t *)&a.ip;
-}
-
-
-void mg_set_ip(){
-  g_mgr.ifp->enable_dhcp_client = 0;
-  g_mgr.ifp->ip = ipv4ary(netConfig.currentIP);
-  g_mgr.ifp->gw = ipv4ary(netConfig.gatewayIP);
-  g_mgr.ifp->mask = MG_IPV4(255, 255, 255, 0);
-}*/
-
 bool mg_random(void *buf, size_t len) {
   static bool initialised;
   static uint32_t rng_index = TRNG_ENT_COUNT;

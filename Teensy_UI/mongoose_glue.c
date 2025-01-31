@@ -9,7 +9,8 @@
 
 #include "mongoose_glue.h"
 
-static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, 4, "AiO GUI v5.12"};
+static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, "AiO GUI v5.12"};
+const uint8_t WORK_HYST_LOOKUP[6] = {1,2,3,5,8,12};
 
 void glue_init(void) {
   MG_DEBUG(("Custom init done"));
@@ -20,8 +21,7 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   //static uint64_t timer_voltage = 0;
   //static uint64_t timer_pressure = 0;
   uint64_t now = mg_millis();
-  static uint64_t timer_work_state = 0;
-  static uint64_t timer_work_input = 0;
+  static uint64_t timer_work = 0;
 
   // Prevent stale connections to grow infinitely
   if (c->send.len > 1024) return;
@@ -38,13 +38,17 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   }*/
 
   // Send updates to "websocket.work_state" value every 200 milliseconds
-  if (mg_timer_expired(&timer_work_state, 200, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_state"), s_settings.work_state);
-  }
+  if (mg_timer_expired(&timer_work, 100, now)) {
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_state_websocket"), s_settings.work_state);
 
-  // Send updates to "websocket.work_state" value every 200 milliseconds
-  if (mg_timer_expired(&timer_work_input, 200, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_input"), s_settings.work_input);
+    char myInputText[101] = "---------|---------|---------|---------|---------|---------|---------|---------|---------|----------";
+    myInputText[s_settings.work_input - 1] = '*';
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("work_input_websocket"), MG_ESC(myInputText));
+
+    char myThresText[101] = "----------------------------------------------------------------------------------------------------";
+    myThresText[s_settings.work_thres - WORK_HYST_LOOKUP[s_settings.work_hyst] - 1] = '^';
+    myThresText[s_settings.work_thres + WORK_HYST_LOOKUP[s_settings.work_hyst] - 1] = '^';
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("work_thres_websocket"), MG_ESC(myThresText));
   }
 
 }
@@ -128,7 +132,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
 }
 
 // moved higher so that button functions can access struct
-//static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, 4, "AiO GUI v5.12"};
+//static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, "AiO GUI v5.12"};
 void glue_get_settings(struct settings *data) {
   *data = s_settings;  // Sync with your device
 }

@@ -90,7 +90,6 @@ struct attribute s_settings_attributes[] = {
   {"work_thres", "int", NULL, offsetof(struct settings, work_thres), 0, false},
   {"work_hyst", "int", NULL, offsetof(struct settings, work_hyst), 0, false},
   {"work_invert", "bool", NULL, offsetof(struct settings, work_invert), 0, false},
-  {"ui_refresh_rate", "int", NULL, offsetof(struct settings, ui_refresh_rate), 0, false},
   {"fversion", "string", NULL, offsetof(struct settings, fversion), 40, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
