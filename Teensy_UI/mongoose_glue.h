@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include "mongoose.h"
+#include "Arduino.h"
 
 #define WIZARD_ENABLE_HTTP 1
 #define WIZARD_ENABLE_HTTPS 0
@@ -17,7 +18,7 @@ extern "C" {
 #define WIZARD_ENABLE_HTTP_UI_LOGIN 0
 
 #define WIZARD_ENABLE_WEBSOCKET 1
-#define WIZARD_WEBSOCKET_TIMER_MS 50
+#define WIZARD_WEBSOCKET_TIMER_MS 10  // default 50 ms
 
 #define WIZARD_ENABLE_MQTT 0
 #define WIZARD_MQTT_URL ""

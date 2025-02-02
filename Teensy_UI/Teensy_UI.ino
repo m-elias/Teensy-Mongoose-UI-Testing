@@ -27,6 +27,7 @@ const uint8_t WORK_HYST_LOOKUP[6] = {1,2,3,5,8,12};
 const uint8_t UI_UPDATE_RATE_LOOKUP[4] = {1,2,4,8};
 
 const uint16_t EE_IDENT = 2407;
+const uint16_t eeAddr = 0;
 
 #define WAS_PIN         A15     // WAS input
 #define STEER_PIN         2     // STEER input
@@ -52,11 +53,11 @@ void setup() {
   //mg_set_ip();  // causes Teensy to hang
 
   uint16_t eeIdentRead = EE_IDENT;
-  uint16_t eeAddr = 0;
-  EEPROM.get(eeAddr + 0, eeIdentRead);
+  //EEPROM.get(eeAddr + 0, eeIdentRead);
+  eeIdentRead = EEPROM[eeAddr + 0];
 
   if (eeIdentRead != EE_IDENT) {  // if value in eeprom does not match, overwrite with defaults
-    EEPROM.put(eeAddr + 0, EE_IDENT);
+    EEPROM.put(eeAddr + 0, EE_IDENT);           // EEPROM.put() uses EEPROM.update() which only writes to EEPROM when the value has changed
     EEPROM.put(eeAddr + 2, settings_global);
     Serial.print("\r\n- ** EEPROM version mismatch, reset to defaults! **\r\n");
   } else {
@@ -80,6 +81,7 @@ void loop() {
 
   static elapsedMillis workTimer = 0;
   if (workTimer > 99) { // 10hz
+    uint32_t t1 = micros();
     workTimer -= 100;   // try to maintain steady 10hz
     static bool workState = 0;
     float read = float(analogRead(WAS_PIN)) / 10.24; // convert to 0-100 percent (/1024*100)
@@ -92,19 +94,18 @@ void loop() {
     if (read > settings_global.work_thres + WORK_HYST_LOOKUP[settings_global.work_hyst]) {
       workState = HIGH;
     }
-    settings_global.work_state = (!workState != !settings_global.work_invert);  // XOR the work state logic with invert setting
 
-    settings_global.work_input = round(read);
-    
+    settings_global.work_state = (!workState != !settings_global.work_invert);  // XOR the work state logic with invert setting
+    settings_global.work_input = min(round(read), 100);
     glue_set_settings(&settings_global);
     glue_update_state();  // triggers UI update, max 1hz regardless of Wizard setting?
+    uint32_t t2 = micros();
+    //Serial << "work update: " << t2-t1 << "uS";
 
-    char myThresText[101] = "----------------------------------------------------------------------------------------------------";
-    Serial.println(myThresText);
-    myThresText[settings_global.work_thres - WORK_HYST_LOOKUP[settings_global.work_hyst]] = '^';
-    myThresText[settings_global.work_thres + WORK_HYST_LOOKUP[settings_global.work_hyst]] = '^';
-    Serial.println(myThresText);
-
+    t1 = micros();
+    EEPROM.put(eeAddr + 2, settings_global);
+    t2 = micros();
+    Serial << "  ee update: " << t2-t1 << "uS\r\n";
   }
 
 
