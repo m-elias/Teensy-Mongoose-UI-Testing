@@ -120,7 +120,10 @@
               {"type": "container", "classes": "panel", "css": "", "layout": [
                   {"type": "text", "format": "Input Switches & Sensors", "classes": "title"},
                   {"type": "container", "classes": "panel", "layout": [
-                      {"type": "text", "format": "Steer Switch", "classes": "subtitle1"},
+                      {"type": "text", "format": "Steer Switch", "classes": "subtitle1", "conditions": [
+                          {"expr": "input_settings.steer_state", "classes": "", "css": "background: green;"},
+                          {"expr": "!input_settings.steer_state", "classes": "", "css": "background: red; "}
+                        ], "css": "color: black;"},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
                           {"type": "status", "ref": "websocket.steer_state", "labels": "OFF,ON", "css": "flex: 0 0 2em;", "classes": ""}
                         ]}
@@ -136,7 +139,7 @@
                           {"type": "toggle", "ref": "input_settings.work_invert", "css": "flex: 0 0 2em;", "autosave": true}
                         ]},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
-                          {"type": "gauge", "ref": "websocket.work_input", "min": "0", "max": "100", "conditions": [], "color": "rgb(186,230,253)"}
+                          {"type": "gauge", "ref": "input_settings.work_input", "min": "0", "max": "100", "conditions": [], "color": "rgb(186,230,253)"}
                         ], "conditions": [], "format": ""},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
                           {"format": "Input", "classes": "", "css": "flex: 0 0 5em;"},
@@ -158,7 +161,10 @@
                         ], "css": "gap: 1em;"}
                     ], "css": "flex: 0 0 0em;"},
                   {"type": "container", "classes": "panel", "layout": [
-                      {"type": "text", "format": "Autosteer Kickout", "classes": "subtitle1"},
+                      {"type": "text", "format": "Autosteer Kickout", "classes": "subtitle1", "conditions": [
+                          {"expr": "input_settings.kickout_state", "classes": "", "css": "background: green;"},
+                          {"expr": "!input_settings.kickout_state", "classes": "", "css": "background: red;"}
+                        ], "css": "color: black;"},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
                           {"type": "status", "ref": "websocket.kickout_state", "labels": "OFF,ON", "css": "flex: 0 0 2em;", "classes": ""}
                         ]},
@@ -169,14 +175,14 @@
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Work Switch/Analog Input", "classes": "subtitle1"},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
-                          {"type": "status", "ref": "input_settings.work_state", "labels": "OFF,ON", "css": "flex: 0 0 4em;", "classes": ""}
+                          {"type": "status", "ref": "input_settings.work_state", "labels": "OFF (REST),ON (REST)", "css": "flex: 0 0 4em;", "classes": ""}
                         ]},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
-                          {"format": "Input REST", "classes": "", "css": "flex: 0 0 5em;"},
+                          {"format": "Input REST", "classes": "", "css": "flex: 0 0 5em;", "conditions": []},
                           {"type": "progress", "ref": "input_settings.work_input", "min": "0", "max": "100", "color": "rgb(186,230,253)", "conditions": [
-                              {"expr": "", "classes": "", "css": ""}
+                              {"expr": "input_settings.work_input < 40", "classes": "", "css": "color: blue;"}
                             ]}
-                        ]},
+                        ], "conditions": []},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
                           {"format": "ThresholdR", "classes": "", "css": "flex: 0 0 5em;"},
                           {"type": "progress", "ref": "input_settings.work_thres", "min": "0", "max": "100", "color": "rgb(186,230,253)"}
