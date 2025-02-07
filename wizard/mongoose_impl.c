@@ -64,44 +64,107 @@ struct apihandler {
   bool readonly;
   int read_level;
   int write_level;
-  unsigned long version;                   // Every change increments version
-  const struct attribute *attributes;      // Points to the strucure descriptor
-  void (*getter)(void *);                  // Getter/check/begin function
-  void (*setter)(void *);                  // Setter/start/end function
+  unsigned long version;
+};
+
+struct apihandler_custom {
+  struct apihandler common;
+  void (*reply)(struct mg_connection *, struct mg_http_message *);
+};
+
+struct apihandler_upload {
+  struct apihandler common;
   void *(*opener)(char *, size_t);         // Open function (OTA and upload)
   bool (*closer)(void *);                  // Closer function (OTA and upload)
   bool (*writer)(void *, void *, size_t);  // Writer function (OTA and upload)
-  bool (*checker)(void);                   // Checker function for actions
-  void (*starter)(void);                   // Starter function for actions
-  size_t (*grapher)(uint32_t, uint32_t, uint32_t *, double *, size_t);
-  size_t data_size;  // Size of C structure
 };
 
-struct attribute s_settings_attributes[] = {
-  {"bd_ip1", "int", NULL, offsetof(struct settings, bd_ip1), 0, false},
-  {"bd_ip2", "int", NULL, offsetof(struct settings, bd_ip2), 0, false},
-  {"bd_ip3", "int", NULL, offsetof(struct settings, bd_ip3), 0, false},
-  {"bd_ip4", "int", NULL, offsetof(struct settings, bd_ip4), 0, false},
-  {"gps_type", "int", NULL, offsetof(struct settings, gps_type), 0, false},
-  {"gps_pass", "bool", NULL, offsetof(struct settings, gps_pass), 0, false},
-  {"steer_state", "bool", NULL, offsetof(struct settings, steer_state), 0, false},
-  {"work_state", "bool", NULL, offsetof(struct settings, work_state), 0, false},
-  {"work_input", "int", NULL, offsetof(struct settings, work_input), 0, false},
-  {"work_thres", "int", NULL, offsetof(struct settings, work_thres), 0, false},
-  {"work_hyst", "int", NULL, offsetof(struct settings, work_hyst), 0, false},
-  {"work_invert", "bool", NULL, offsetof(struct settings, work_invert), 0, false},
-  {"fversion", "string", NULL, offsetof(struct settings, fversion), 40, false},
+struct apihandler_ota {
+  struct apihandler common;
+  void *(*opener)(char *, size_t);         // Open function (OTA and upload)
+  bool (*closer)(void *);                  // Closer function (OTA and upload)
+  bool (*writer)(void *, void *, size_t);  // Writer function (OTA and upload)
+};
+
+struct apihandler_action {
+  struct apihandler common;
+  bool (*checker)(void);  // Checker function for actions
+  void (*starter)(void);  // Starter function for actions
+};
+
+struct apihandler_graph {
+  struct apihandler common;
+  size_t (*grapher)(uint32_t, uint32_t, uint32_t *, double *, size_t);
+};
+
+struct apihandler_data {
+  struct apihandler common;
+  const struct attribute *attributes;  // Points to the strucure descriptor
+  size_t data_size;                    // Size of C structure
+  void (*getter)(void *);              // Getter/check/begin function
+  void (*setter)(void *);              // Setter/start/end function
+};
+
+struct apihandler_array {
+  struct apihandler common;
+  const struct attribute *attributes;  // Points to the strucure descriptor
+  size_t data_size;                    // Size of C structure
+  void (*getter)(uint64_t, void *);    // Getter/check/begin function
+  void (*setter)(uint64_t, void *);    // Setter/start/end function
+  uint64_t (*sizer)(void);             // Array size, for data handlers only
+};
+
+struct attribute s_comms_settings_attributes[] = {
+  {"bd_ip1", "int", NULL, offsetof(struct comms_settings, bd_ip1), 0, false},
+  {"bd_ip2", "int", NULL, offsetof(struct comms_settings, bd_ip2), 0, false},
+  {"bd_ip3", "int", NULL, offsetof(struct comms_settings, bd_ip3), 0, false},
+  {"bd_ip4", "int", NULL, offsetof(struct comms_settings, bd_ip4), 0, false},
+  {"gps_sync", "string", NULL, offsetof(struct comms_settings, gps_sync), 15, false},
+  {"gps_pass", "bool", NULL, offsetof(struct comms_settings, gps_pass), 0, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
-static struct apihandler s_apihandlers[] = {
-  {"save_ip", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_save_ip, glue_start_save_ip, NULL, 0},
-  {"reboot", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_reboot, glue_start_reboot, NULL, 0},
-  {"dec_work_thres", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_dec_work_thres, glue_start_dec_work_thres, NULL, 0},
-  {"set_work_thres", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_set_work_thres, glue_start_set_work_thres, NULL, 0},
-  {"inc_work_thres", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_inc_work_thres, glue_start_inc_work_thres, NULL, 0},
-  {"set_work_digital", "action", false, 3, 7, 0UL, NULL, NULL, NULL, NULL, NULL, NULL, glue_check_set_work_digital, glue_start_set_work_digital, NULL, 0},
-  {"firmware_update", "ota", false, 3, 7, 0UL, NULL, NULL, NULL, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update, NULL, NULL, NULL, 0},
-  {"settings", "data", false, 3, 7, 0UL, s_settings_attributes, (void (*)(void *)) glue_get_settings, (void (*)(void *)) glue_set_settings, NULL, NULL, NULL, NULL, NULL, NULL, sizeof(struct settings)}
+struct attribute s_input_settings_attributes[] = {
+  {"steer_state", "bool", NULL, offsetof(struct input_settings, steer_state), 0, false},
+  {"work_state", "bool", NULL, offsetof(struct input_settings, work_state), 0, false},
+  {"work_input", "int", NULL, offsetof(struct input_settings, work_input), 0, false},
+  {"work_thres", "int", NULL, offsetof(struct input_settings, work_thres), 0, false},
+  {"work_hyst", "string", NULL, offsetof(struct input_settings, work_hyst), 3, false},
+  {"work_invert", "bool", NULL, offsetof(struct input_settings, work_invert), 0, false},
+  {"kickout_state", "bool", NULL, offsetof(struct input_settings, kickout_state), 0, false},
+  {"update", "bool", NULL, offsetof(struct input_settings, update), 0, false},
+  {"fversion", "string", NULL, offsetof(struct input_settings, fversion), 40, false},
+  {NULL, NULL, NULL, 0, 0, false}
+};
+struct attribute s_network_settings_attributes[] = {
+  {"ip_address", "string", NULL, offsetof(struct network_settings, ip_address), 20, false},
+  {"gw_address", "string", NULL, offsetof(struct network_settings, gw_address), 20, false},
+  {"netmask", "string", NULL, offsetof(struct network_settings, netmask), 20, false},
+  {"dhcp", "bool", NULL, offsetof(struct network_settings, dhcp), 0, false},
+  {NULL, NULL, NULL, 0, 0, false}
+};
+
+struct apihandler_action s_apihandler_save_ip = {{"save_ip", "action", false, 3, 7, 0UL}, glue_check_save_ip, glue_start_save_ip};
+struct apihandler_action s_apihandler_reboot = {{"reboot", "action", false, 3, 7, 0UL}, glue_check_reboot, glue_start_reboot};
+struct apihandler_action s_apihandler_dec_work_thres = {{"dec_work_thres", "action", false, 3, 7, 0UL}, glue_check_dec_work_thres, glue_start_dec_work_thres};
+struct apihandler_action s_apihandler_set_work_thres = {{"set_work_thres", "action", false, 3, 7, 0UL}, glue_check_set_work_thres, glue_start_set_work_thres};
+struct apihandler_action s_apihandler_inc_work_thres = {{"inc_work_thres", "action", false, 3, 7, 0UL}, glue_check_inc_work_thres, glue_start_inc_work_thres};
+struct apihandler_action s_apihandler_set_work_digital = {{"set_work_digital", "action", false, 3, 7, 0UL}, glue_check_set_work_digital, glue_start_set_work_digital};
+struct apihandler_ota s_apihandler_firmware_update = {{"firmware_update", "ota", false, 3, 7, 0UL}, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update};
+struct apihandler_data s_apihandler_comms_settings = {{"comms_settings", "data", false, 3, 7, 0UL}, s_comms_settings_attributes, sizeof(struct comms_settings), (void (*)(void *)) glue_get_comms_settings, (void (*)(void *)) glue_set_comms_settings};
+struct apihandler_data s_apihandler_input_settings = {{"input_settings", "data", false, 3, 7, 0UL}, s_input_settings_attributes, sizeof(struct input_settings), (void (*)(void *)) glue_get_input_settings, (void (*)(void *)) glue_set_input_settings};
+struct apihandler_data s_apihandler_network_settings = {{"network_settings", "data", false, 3, 7, 0UL}, s_network_settings_attributes, sizeof(struct network_settings), (void (*)(void *)) glue_get_network_settings, (void (*)(void *)) glue_set_network_settings};
+
+static struct apihandler *s_apihandlers[] = {
+  (struct apihandler *) &s_apihandler_save_ip,
+  (struct apihandler *) &s_apihandler_reboot,
+  (struct apihandler *) &s_apihandler_dec_work_thres,
+  (struct apihandler *) &s_apihandler_set_work_thres,
+  (struct apihandler *) &s_apihandler_inc_work_thres,
+  (struct apihandler *) &s_apihandler_set_work_digital,
+  (struct apihandler *) &s_apihandler_firmware_update,
+  (struct apihandler *) &s_apihandler_comms_settings,
+  (struct apihandler *) &s_apihandler_input_settings,
+  (struct apihandler *) &s_apihandler_network_settings
 };
 
 static struct apihandler *get_api_handler(struct mg_str name) {
@@ -110,7 +173,7 @@ static struct apihandler *get_api_handler(struct mg_str name) {
   if (name.len == 0) return NULL;
   if (num_handlers == 0) return NULL;
   for (i = 0; i < num_handlers; i++) {
-    struct apihandler *h = &s_apihandlers[i];
+    struct apihandler *h = s_apihandlers[i];
     size_t n = strlen(h->name);
     if (n > name.len) continue;
     if (strncmp(name.buf, h->name, n) != 0) continue;
@@ -296,6 +359,7 @@ static void handle_uploads(struct mg_connection *c, int ev, void *ev_data) {
   if (ev == MG_EV_HTTP_HDRS && us->marker == 0) {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
     struct apihandler *h = find_handler(hm);
+    struct apihandler_upload *hu = (struct apihandler_upload *) h;
 #if WIZARD_ENABLE_HTTP_UI_LOGIN
     struct user *u = authenticate(hm);
     if (mg_match(hm->uri, mg_str("/api/#"), NULL) &&
@@ -309,7 +373,7 @@ static void handle_uploads(struct mg_connection *c, int ev, void *ev_data) {
         if (h != NULL &&
             (strcmp(h->type, "upload") == 0 || strcmp(h->type, "ota") == 0)) {
       // OTA/upload endpoints
-      prep_upload(c, hm, h->opener, h->closer, h->writer);
+      prep_upload(c, hm, hu->opener, hu->closer, hu->writer);
     }
   }
 }
@@ -331,22 +395,21 @@ static void handle_action(struct mg_connection *c, struct mg_http_message *hm,
 }
 
 size_t print_struct(void (*out)(char, void *), void *ptr, va_list *ap) {
-  struct apihandler *h = va_arg(*ap, struct apihandler *);
+  const struct attribute *a = va_arg(*ap, struct attribute *);
   char *data = va_arg(*ap, char *);
   size_t i, len = 0;
-  for (i = 0; h->attributes[i].name != NULL; i++) {
-    char *attrptr = data + h->attributes[i].offset;
-    len += mg_xprintf(out, ptr, "%s%m:", i == 0 ? "" : ",",
-                      MG_ESC(h->attributes[i].name));
-    if (strcmp(h->attributes[i].type, "int") == 0) {
+  for (i = 0; a[i].name != NULL; i++) {
+    char *attrptr = data + a[i].offset;
+    len += mg_xprintf(out, ptr, "%s%m:", i == 0 ? "" : ",", MG_ESC(a[i].name));
+    if (strcmp(a[i].type, "int") == 0) {
       len += mg_xprintf(out, ptr, "%d", *(int *) attrptr);
-    } else if (strcmp(h->attributes[i].type, "double") == 0) {
-      const char *fmt = h->attributes[i].format;
+    } else if (strcmp(a[i].type, "double") == 0) {
+      const char *fmt = a[i].format;
       if (fmt == NULL) fmt = "%g";
       len += mg_xprintf(out, ptr, fmt, *(double *) attrptr);
-    } else if (strcmp(h->attributes[i].type, "bool") == 0) {
+    } else if (strcmp(a[i].type, "bool") == 0) {
       len += mg_xprintf(out, ptr, "%s", *(bool *) attrptr ? "true" : "false");
-    } else if (strcmp(h->attributes[i].type, "string") == 0) {
+    } else if (strcmp(a[i].type, "string") == 0) {
       len += mg_xprintf(out, ptr, "%m", MG_ESC(attrptr));
     } else {
       len += mg_xprintf(out, ptr, "null");
@@ -356,7 +419,7 @@ size_t print_struct(void (*out)(char, void *), void *ptr, va_list *ap) {
 }
 
 static void handle_object(struct mg_connection *c, struct mg_http_message *hm,
-                          struct apihandler *h) {
+                          struct apihandler_data *h) {
   void *data = calloc(1, h->data_size);
   h->getter(data);
   if (hm->body.len > 0 && h->data_size > 0) {
@@ -387,8 +450,36 @@ static void handle_object(struct mg_connection *c, struct mg_http_message *hm,
     free(tmp);
     h->getter(data);  // Re-sync again after setting
   }
-  mg_http_reply(c, 200, JSON_HEADERS, "{%M}\n", print_struct, h, data);
+  mg_http_reply(c, 200, JSON_HEADERS, "{%M}\n", print_struct, h->attributes,
+                data);
   free(data);
+}
+
+static size_t print_array(void (*out)(char, void *), void *ptr, va_list *ap) {
+  struct apihandler_array *ha = va_arg(*ap, struct apihandler_array *);
+  uint64_t size = *va_arg(*ap, uint64_t *);
+  uint64_t start = *va_arg(*ap, uint64_t *);
+  size_t i, max = 20, len = 0;
+  void *data = calloc(1, ha->data_size);
+  for (i = 0; i < max && start + i < size; i++) {
+    ha->getter(start + i, data);
+    if (i > 0) len += mg_xprintf(out, ptr, ",");
+    len += mg_xprintf(out, ptr, "{%M}", print_struct, ha->attributes, data);
+  }
+  free(data);
+  return len;
+}
+
+static void handle_array(struct mg_connection *c, struct mg_http_message *hm,
+                         struct apihandler_array *h) {
+  char buf[40] = "";
+  uint64_t size = h->sizer();
+  uint64_t start = 0;
+  mg_http_get_var(&hm->query, "start", buf, sizeof(buf));
+  if (!mg_str_to_num(mg_str(buf), 10, &start, sizeof(start))) start = 0;
+  mg_http_reply(c, 200, JSON_HEADERS, "{%m:%llu, %m:%llu, %m:[%M]}\n",
+                MG_ESC("size"), size, MG_ESC("start"), start, MG_ESC("data"),
+                print_array, h, &size, &start);
 }
 
 size_t print_timeseries(void (*out)(char, void *), void *ptr, va_list *ap) {
@@ -404,7 +495,7 @@ size_t print_timeseries(void (*out)(char, void *), void *ptr, va_list *ap) {
 }
 
 static void handle_graph(struct mg_connection *c, struct mg_http_message *hm,
-                         struct apihandler *h) {
+                         struct apihandler_graph *h) {
   long from = mg_json_get_long(hm->body, "$.from", 0);
   long to = mg_json_get_long(hm->body, "$.to", 0);
   uint32_t timestamps[20];
@@ -418,11 +509,16 @@ static void handle_graph(struct mg_connection *c, struct mg_http_message *hm,
 static void handle_api_call(struct mg_connection *c, struct mg_http_message *hm,
                             struct apihandler *h) {
   if (strcmp(h->type, "object") == 0 || strcmp(h->type, "data") == 0) {
-    handle_object(c, hm, h);
+    handle_object(c, hm, (struct apihandler_data *) h);
+  } else if (strcmp(h->type, "array") == 0) {
+    handle_array(c, hm, (struct apihandler_array *) h);
   } else if (strcmp(h->type, "action") == 0) {
-    handle_action(c, hm, h->checker, h->starter);
+    struct apihandler_action *ha = (struct apihandler_action *) h;
+    handle_action(c, hm, ha->checker, ha->starter);
   } else if (strcmp(h->type, "graph") == 0) {
-    handle_graph(c, hm, h);
+    handle_graph(c, hm, (struct apihandler_graph *) h);
+  } else if (strcmp(h->type, "custom") == 0) {
+    ((struct apihandler_custom *) h)->reply(c, hm);
   } else {
     mg_http_reply(c, 500, JSON_HEADERS, "API type %s unknown\n", h->type);
   }

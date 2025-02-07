@@ -119,7 +119,7 @@ struct attribute s_comms_settings_attributes[] = {
   {"bd_ip2", "int", NULL, offsetof(struct comms_settings, bd_ip2), 0, false},
   {"bd_ip3", "int", NULL, offsetof(struct comms_settings, bd_ip3), 0, false},
   {"bd_ip4", "int", NULL, offsetof(struct comms_settings, bd_ip4), 0, false},
-  {"gps_sync", "string", NULL, offsetof(struct comms_settings, gps_sync), 15, false},
+  {"gps_sync", "int", NULL, offsetof(struct comms_settings, gps_sync), 0, false},
   {"gps_pass", "bool", NULL, offsetof(struct comms_settings, gps_pass), 0, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
@@ -128,7 +128,6 @@ struct attribute s_input_settings_attributes[] = {
   {"work_state", "bool", NULL, offsetof(struct input_settings, work_state), 0, false},
   {"work_input", "int", NULL, offsetof(struct input_settings, work_input), 0, false},
   {"work_thres", "int", NULL, offsetof(struct input_settings, work_thres), 0, false},
-  {"work_hyst", "string", NULL, offsetof(struct input_settings, work_hyst), 3, false},
   {"work_invert", "bool", NULL, offsetof(struct input_settings, work_invert), 0, false},
   {"kickout_state", "bool", NULL, offsetof(struct input_settings, kickout_state), 0, false},
   {"update", "bool", NULL, offsetof(struct input_settings, update), 0, false},

@@ -22,8 +22,8 @@ void glue_websocket_on_timer(struct mg_connection *c) {
 
   // Send updates to "websocket.voltage" value every 200 milliseconds
   if (mg_timer_expired(&timer_voltage, 200, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("voltage"),
-                 now % 9999);
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu, %m: %s}", MG_ESC("voltage"),
+                 now % 100, MG_ESC("led"), now & 1 ? "true" : "false");
   }
 
   // Send updates to "websocket.pressure" value every 5000 milliseconds
@@ -103,10 +103,26 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct settings s_settings = {192, 168, 5, 126, 1, false, false, false, 33, 50, 3, false, "AiO GUI v5.12"};
-void glue_get_settings(struct settings *data) {
-  *data = s_settings;  // Sync with your device
+static struct comms_settings s_comms_settings = {192, 168, 5, 126, "60ms - F9P", false};
+void glue_get_comms_settings(struct comms_settings *data) {
+  *data = s_comms_settings;  // Sync with your device
 }
-void glue_set_settings(struct settings *data) {
-  s_settings = *data; // Sync with your device
+void glue_set_comms_settings(struct comms_settings *data) {
+  s_comms_settings = *data; // Sync with your device
+}
+
+static struct input_settings s_input_settings = {false, false, 31, 50, "18", true, false, false, "AiO GUI v5.old"};
+void glue_get_input_settings(struct input_settings *data) {
+  *data = s_input_settings;  // Sync with your device
+}
+void glue_set_input_settings(struct input_settings *data) {
+  s_input_settings = *data; // Sync with your device
+}
+
+static struct network_settings s_network_settings = {"192.168.0.42", "192.168.0.1", "255.255.255.0", true};
+void glue_get_network_settings(struct network_settings *data) {
+  *data = s_network_settings;  // Sync with your device
+}
+void glue_set_network_settings(struct network_settings *data) {
+  s_network_settings = *data; // Sync with your device
 }

@@ -85,23 +85,39 @@ void glue_start_set_work_digital(void);
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);
 bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
-struct settings {
+struct comms_settings {
   int bd_ip1;
   int bd_ip2;
   int bd_ip3;
   int bd_ip4;
-  int gps_type;
+  char gps_sync[15];
   bool gps_pass;
+};
+void glue_get_comms_settings(struct comms_settings *);
+void glue_set_comms_settings(struct comms_settings *);
+
+struct input_settings {
   bool steer_state;
   bool work_state;
   int work_input;
   int work_thres;
-  int work_hyst;
+  char work_hyst[3];
   bool work_invert;
+  bool kickout_state;
+  bool update;
   char fversion[40];
 };
-void glue_get_settings(struct settings *);
-void glue_set_settings(struct settings *);
+void glue_get_input_settings(struct input_settings *);
+void glue_set_input_settings(struct input_settings *);
+
+struct network_settings {
+  char ip_address[20];
+  char gw_address[20];
+  char netmask[20];
+  bool dhcp;
+};
+void glue_get_network_settings(struct network_settings *);
+void glue_set_network_settings(struct network_settings *);
 
 
 #ifdef __cplusplus
