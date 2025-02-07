@@ -8,9 +8,9 @@
 #include "mongoose_glue.h"
 
 // added these forward declarations so that btn functions can access s_*_settings
-static struct input_settings s_input_settings;
-static struct network_settings s_network_settings;
 static struct comms_settings s_comms_settings;
+static struct input_settings s_input_settings;
+static struct misc_settings s_misc_settings;
 
 void glue_init(void) {
   MG_DEBUG(("Custom init done"));
@@ -25,8 +25,8 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   if (c->send.len > 1024) return;
 
   // Send updates to websocket work widgets value every 50 milliseconds
-  if (mg_timer_expired(&timer_work, 50, now) || s_input_settings.update) {
-    s_input_settings.update = false;
+  if (mg_timer_expired(&timer_work, 50, now) || s_misc_settings.update) {
+    s_misc_settings.update = false;
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("steer_state"), s_input_settings.steer_state);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_state"), s_input_settings.work_state);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_input"), s_input_settings.work_input);
@@ -129,7 +129,7 @@ void glue_set_comms_settings(struct comms_settings *data) {
   s_comms_settings = *data; // Sync with your device
 }
 
-static struct input_settings s_input_settings = {false, false, 31, 50, "18", true, false, false, "AiO GUI v5.old"};
+static struct input_settings s_input_settings = {false, false, 31, 50, "18", true, false};
 void glue_get_input_settings(struct input_settings *data) {
   *data = s_input_settings;  // Sync with your device
 }
@@ -137,10 +137,10 @@ void glue_set_input_settings(struct input_settings *data) {
   s_input_settings = *data; // Sync with your device
 }
 
-static struct network_settings s_network_settings = {"192.168.0.42", "192.168.0.1", "255.255.255.0", true};
-void glue_get_network_settings(struct network_settings *data) {
-  *data = s_network_settings;  // Sync with your device
+static struct misc_settings s_misc_settings = {false, "AiO GUI v5.old"};
+void glue_get_misc_settings(struct misc_settings *data) {
+  *data = s_misc_settings;  // Sync with your device
 }
-void glue_set_network_settings(struct network_settings *data) {
-  s_network_settings = *data; // Sync with your device
+void glue_set_misc_settings(struct misc_settings *data) {
+  s_misc_settings = *data; // Sync with your device
 }

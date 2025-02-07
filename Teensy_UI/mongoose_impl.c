@@ -131,15 +131,11 @@ struct attribute s_input_settings_attributes[] = {
   {"work_hyst", "string", NULL, offsetof(struct input_settings, work_hyst), 3, false},
   {"work_invert", "bool", NULL, offsetof(struct input_settings, work_invert), 0, false},
   {"kickout_state", "bool", NULL, offsetof(struct input_settings, kickout_state), 0, false},
-  {"update", "bool", NULL, offsetof(struct input_settings, update), 0, false},
-  {"fversion", "string", NULL, offsetof(struct input_settings, fversion), 40, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
-struct attribute s_network_settings_attributes[] = {
-  {"ip_address", "string", NULL, offsetof(struct network_settings, ip_address), 20, false},
-  {"gw_address", "string", NULL, offsetof(struct network_settings, gw_address), 20, false},
-  {"netmask", "string", NULL, offsetof(struct network_settings, netmask), 20, false},
-  {"dhcp", "bool", NULL, offsetof(struct network_settings, dhcp), 0, false},
+struct attribute s_misc_settings_attributes[] = {
+  {"update", "bool", NULL, offsetof(struct misc_settings, update), 0, false},
+  {"fversion", "string", NULL, offsetof(struct misc_settings, fversion), 40, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 
@@ -152,7 +148,7 @@ struct apihandler_action s_apihandler_set_work_digital = {{"set_work_digital", "
 struct apihandler_ota s_apihandler_firmware_update = {{"firmware_update", "ota", false, 3, 7, 0UL}, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update};
 struct apihandler_data s_apihandler_comms_settings = {{"comms_settings", "data", false, 3, 7, 0UL}, s_comms_settings_attributes, sizeof(struct comms_settings), (void (*)(void *)) glue_get_comms_settings, (void (*)(void *)) glue_set_comms_settings};
 struct apihandler_data s_apihandler_input_settings = {{"input_settings", "data", false, 3, 7, 0UL}, s_input_settings_attributes, sizeof(struct input_settings), (void (*)(void *)) glue_get_input_settings, (void (*)(void *)) glue_set_input_settings};
-struct apihandler_data s_apihandler_network_settings = {{"network_settings", "data", false, 3, 7, 0UL}, s_network_settings_attributes, sizeof(struct network_settings), (void (*)(void *)) glue_get_network_settings, (void (*)(void *)) glue_set_network_settings};
+struct apihandler_data s_apihandler_misc_settings = {{"misc_settings", "data", false, 3, 7, 0UL}, s_misc_settings_attributes, sizeof(struct misc_settings), (void (*)(void *)) glue_get_misc_settings, (void (*)(void *)) glue_set_misc_settings};
 
 static struct apihandler *s_apihandlers[] = {
   (struct apihandler *) &s_apihandler_save_ip,
@@ -164,7 +160,7 @@ static struct apihandler *s_apihandlers[] = {
   (struct apihandler *) &s_apihandler_firmware_update,
   (struct apihandler *) &s_apihandler_comms_settings,
   (struct apihandler *) &s_apihandler_input_settings,
-  (struct apihandler *) &s_apihandler_network_settings
+  (struct apihandler *) &s_apihandler_misc_settings
 };
 
 static struct apihandler *get_api_handler(struct mg_str name) {

@@ -104,20 +104,16 @@ struct input_settings {
   char work_hyst[3];
   bool work_invert;
   bool kickout_state;
-  bool update;
-  char fversion[40];
 };
 void glue_get_input_settings(struct input_settings *);
 void glue_set_input_settings(struct input_settings *);
 
-struct network_settings {
-  char ip_address[20];
-  char gw_address[20];
-  char netmask[20];
-  bool dhcp;
+struct misc_settings {
+  bool update;
+  char fversion[40];
 };
-void glue_get_network_settings(struct network_settings *);
-void glue_set_network_settings(struct network_settings *);
+void glue_get_misc_settings(struct misc_settings *);
+void glue_set_misc_settings(struct misc_settings *);
 
 
 #ifdef __cplusplus
