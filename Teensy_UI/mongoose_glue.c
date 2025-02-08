@@ -18,14 +18,15 @@ void glue_init(void) {
 
 // This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
 void glue_websocket_on_timer(struct mg_connection *c) {
-  static uint64_t timer_work = 0;
+  uint64_t *timer_work = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
+  //uint64_t *timer_pressure = (uint64_t *) &c->data[sizeof(uint64_t)];
   uint64_t now = mg_millis();
 
   // Prevent stale connections to grow infinitely
   if (c->send.len > 1024) return;
 
   // Send updates to websocket work widgets value every 50 milliseconds
-  if (mg_timer_expired(&timer_work, 50, now) || s_misc_settings.update) {
+  if (mg_timer_expired(timer_work, 50, now) || s_misc_settings.update) {
     s_misc_settings.update = false;
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("steer_state"), s_input_settings.steer_state);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_state"), s_input_settings.work_state);
@@ -77,7 +78,8 @@ bool glue_check_set_work_thres(void) {
 }
 void glue_start_set_work_thres(void) {
   s_action_timeout_set_work_thres = mg_now() + 250; // Start set_work_thres, finish after 250ms
-  s_input_settings.work_thres = s_input_settings.work_input;
+  //s_input_settings.work_thres = min(max(s_input_settings.work_input, 10), 90);
+  s_input_settings.work_thres = constrain(s_input_settings.work_input, 10, 90);
   glue_update_state();
 }
 

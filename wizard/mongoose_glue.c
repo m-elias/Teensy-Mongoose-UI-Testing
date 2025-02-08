@@ -13,21 +13,21 @@ void glue_init(void) {
 
 // This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
 void glue_websocket_on_timer(struct mg_connection *c) {
-  static uint64_t timer_voltage = 0;
-  static uint64_t timer_pressure = 0;
+  uint64_t *timer_voltage = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
+  uint64_t *timer_pressure = (uint64_t *) &c->data[sizeof(uint64_t)];
   uint64_t now = mg_millis();
 
   // Prevent stale connections to grow infinitely
   if (c->send.len > 1024) return;
 
   // Send updates to "websocket.voltage" value every 200 milliseconds
-  if (mg_timer_expired(&timer_voltage, 200, now)) {
+  if (mg_timer_expired(timer_voltage, 200, now)) {
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu, %m: %s}", MG_ESC("voltage"),
                  now % 100, MG_ESC("led"), now & 1 ? "true" : "false");
   }
 
   // Send updates to "websocket.pressure" value every 5000 milliseconds
-  if (mg_timer_expired(&timer_pressure, 5000, now)) {
+  if (mg_timer_expired(timer_pressure, 5000, now)) {
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("pressure"), now);
   }
 }

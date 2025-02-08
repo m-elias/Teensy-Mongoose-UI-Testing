@@ -117,8 +117,8 @@
         ]},
       {"title": "Inputs", "icon": "options", "classes": "page", "layout": [
           {"type": "container", "classes": "container-h wrap", "css": "align-items: start;", "layout": [
-              {"type": "container", "classes": "panel", "css": "", "layout": [
-                  {"type": "text", "format": "Input Switches & Sensors", "classes": "title"},
+              {"type": "container", "classes": "panel", "css": "background: lightgrey;", "layout": [
+                  {"type": "text", "format": "Input Switches & Sensors", "classes": "title", "css": "background: grey; color: black;"},
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Steer Switch", "classes": "subtitle1", "conditions": [
                           {"expr": "input_settings.steer_state", "classes": "", "css": "background: green;"},
@@ -139,13 +139,16 @@
                           {"type": "toggle", "ref": "input_settings.work_invert", "css": "flex: 0 0 2em;", "autosave": true}
                         ]},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
-                          {"type": "gauge", "ref": "input_settings.work_input", "min": "0", "max": "100", "conditions": [], "color": "rgb(186,230,253)"}
+                          {"type": "gauge", "ref": "websocket.work_input", "min": "0", "max": "100", "conditions": [], "color": "rgb(186,230,253)"}
                         ], "conditions": [], "format": ""},
-                      {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
+                      {"type": "container", "classes": "form-control", "css": "padding: 1em;", "layout": [
                           {"format": "Input", "classes": "", "css": "flex: 0 0 5em;"},
-                          {"type": "progress", "ref": "websocket.work_input", "min": "0", "max": "100", "color": "rgb(186,230,253)", "conditions": []}
+                          {"type": "progress", "ref": "websocket.work_input", "min": "0", "max": "100", "color": "rgb(186,230,253)", "conditions": [], "css": "padding-right: 1em;"}
+                        ], "conditions": [
+                          {"expr": "input_settings.work_state", "classes": "", "css": "background: green;"},
+                          {"expr": "!input_settings.work_state", "classes": "", "css": "background: red;"}
                         ]},
-                      {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
+                      {"type": "container", "classes": "form-control", "css": "gap: 1em; padding-right: 1em;", "layout": [
                           {"format": "Threshold", "classes": "", "css": "flex: 0 0 5em;"},
                           {"type": "progress", "ref": "websocket.work_thres", "min": "0", "max": "100", "color": "rgb(186,230,253)"}
                         ], "conditions": []},
