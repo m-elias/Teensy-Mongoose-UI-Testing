@@ -22,9 +22,6 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   //uint64_t *timer_pressure = (uint64_t *) &c->data[sizeof(uint64_t)];
   uint64_t now = mg_millis();
 
-  // Prevent stale connections to grow infinitely
-  if (c->send.len > 1024) return;
-
   // Send updates to websocket work widgets value every 50 milliseconds
   if (mg_timer_expired(timer_work, 50, now) || s_misc_settings.update) {
     s_misc_settings.update = false;

@@ -655,7 +655,11 @@ static void websocket_timer(void *arg) {
   struct mg_mgr *mgr = (struct mg_mgr *) arg;
   struct mg_connection *c;
   for (c = mgr->conns; c != NULL; c = c->next) {
-    if (c->is_websocket) glue_websocket_on_timer(c);
+    if (c->is_websocket) {
+      // Prevent stale connections to grow infinitely
+      if (c->send.len > 2048) continue;
+      glue_websocket_on_timer(c);
+    }
   }
 }
 #endif
