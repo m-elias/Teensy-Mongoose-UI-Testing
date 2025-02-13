@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<paths>
+		<left>C:\Users\Matt\Documents\GitHub\m-elias\Teensy-Mongoose-UI-Testing\wizard</left>
+		<right>C:\Users\Matt\Documents\GitHub\m-elias\Teensy-Mongoose-UI-Testing\Teensy_UI</right>
+		<filter>*.*</filter>
+		<subfolders>1</subfolders>
+		<left-readonly>1</left-readonly>
+		<right-readonly>0</right-readonly>
+	</paths>
+</project>

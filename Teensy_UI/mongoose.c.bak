@@ -4257,7 +4257,7 @@ static void settmout(struct mg_connection *c, uint8_t type) {
                : type == MIP_TTYPE_FIN ? MIP_TCP_FIN_MS
                                        : MIP_TCP_KEEPALIVE_MS;
   s->timer = ifp->now + n;
-  s->ttype = type;
+xd  s->ttype = type;
   MG_VERBOSE(("%lu %d -> %llx", c->id, type, s->timer));
 }
 

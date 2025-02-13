@@ -129,8 +129,10 @@ struct attribute s_input_settings_attributes[] = {
   {"work_input", "int", NULL, offsetof(struct input_settings, work_input), 0, false},
   {"work_thres", "int", NULL, offsetof(struct input_settings, work_thres), 0, false},
   {"work_hyst", "string", NULL, offsetof(struct input_settings, work_hyst), 3, false},
+  {"work_hyst_int", "int", NULL, offsetof(struct input_settings, work_hyst_int), 0, false},
   {"work_invert", "bool", NULL, offsetof(struct input_settings, work_invert), 0, false},
   {"kickout_state", "bool", NULL, offsetof(struct input_settings, kickout_state), 0, false},
+  {"kickout_mode", "string", NULL, offsetof(struct input_settings, kickout_mode), 30, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_misc_settings_attributes[] = {

@@ -3,6 +3,8 @@
 #include <Streaming.h>
 #include "mongoose_init.h"
 
+const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
+
 // globally available, working settings struct
 //  - read/write from/to this struct
 //  - call glue_get_input_settings(&s_input_global); before making changes
@@ -13,8 +15,10 @@ struct input_settings s_input_global = {
   0,      // int work_input
   50,     // int work_thres
   "18",   // char work_hyst[3]
+  18,     // int work_hyst_int
   true,   // bool work_invert
   false,  // bool kickout_state
+  "AOG Setting" // char kickout_mode[30]
 };
 
 struct misc_settings s_misc_global = {
@@ -22,7 +26,7 @@ struct misc_settings s_misc_global = {
   "AiO GUI v5.old"  // char fversion[40]
 };
 
-const uint16_t EE_IDENT = 2412;
+const uint16_t EE_IDENT = 2413;
 const uint16_t eeAddr = 0;
 
 #define WAS_A_PIN       A15     // WAS input
@@ -63,6 +67,9 @@ void setup() {
   }
   glue_set_input_settings(&s_input_global);
 
+  glue_get_misc_settings(&s_misc_global);
+  strcpy(s_misc_global.fversion, inoVersion);
+  glue_set_misc_settings(&s_misc_global);
 }
 
 void loop() {
@@ -77,18 +84,18 @@ void loop() {
 
     glue_get_input_settings(&s_input_global); // pull-sync from UI
 
-    if (s_input_global.work_invert) read = 100 - read;  // 1st option to invert input
+    if (s_input_global.work_invert) read = 100 - read;  // option to invert input polarity
 
-    uint8_t work_hyst = atoi(s_input_global.work_hyst);
-    if (read < max(s_input_global.work_thres - work_hyst, 10)) {  // limit to >10% (0.33V)
+    s_input_global.work_hyst_int = atoi(s_input_global.work_hyst);
+    if (read < max(s_input_global.work_thres - s_input_global.work_hyst_int, 10)) {  // limit to >10% (0.33V)
       workState = LOW;
     }
-    if (read > min(s_input_global.work_thres + work_hyst, 90)) { // limit to <90% (2.97V)
+    if (read > min(s_input_global.work_thres + s_input_global.work_hyst_int, 90)) { // limit to <90% (2.97V)
       workState = HIGH;
     }
 
-    s_input_global.work_state = workState;  // 1st option to invert input
-    //s_input_global.work_state = (!workState != !s_input_global.work_invert);  // 2nd option, XOR the work state logic with invert setting
+    s_input_global.work_state = workState;
+    //s_input_global.work_state = (!workState != !s_input_global.work_invert);  // 2nd option to invert, XOR the work state logic with invert setting
     
     s_input_global.work_input = max(min(round(read), 100), 0);  // limit betwwen 0 - 100
 
@@ -106,6 +113,7 @@ void loop() {
     //EEPROM.put(eeAddr + 2, s_input_global);
     //t2 = micros();
     //Serial << "  ee update: " << t2-t1 << "uS\r\n";
+
   }
 
 

@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include "mongoose.h"
+#include "Arduino.h"
 
 #define WIZARD_ENABLE_HTTP 1
 #define WIZARD_ENABLE_HTTPS 0
@@ -101,10 +102,8 @@ struct input_settings {
   int work_input;
   int work_thres;
   char work_hyst[3];
-  int work_hyst_int;
   bool work_invert;
   bool kickout_state;
-  char kickout_mode[30];
 };
 void glue_get_input_settings(struct input_settings *);
 void glue_set_input_settings(struct input_settings *);

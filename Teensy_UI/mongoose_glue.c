@@ -6,6 +6,7 @@
 // #include "hal.h"
 
 #include "mongoose_glue.h"
+#include "Arduino.h"
 
 // added these forward declarations so that btn functions can access s_*_settings
 static struct comms_settings s_comms_settings;
@@ -19,7 +20,7 @@ void glue_init(void) {
 // This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
 void glue_websocket_on_timer(struct mg_connection *c) {
   uint64_t *timer_work = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
-  //uint64_t *timer_pressure = (uint64_t *) &c->data[sizeof(uint64_t)];
+  uint64_t *timer_1s = (uint64_t *) &c->data[sizeof(uint64_t)];
   uint64_t now = mg_millis();
 
   // Send updates to websocket work widgets value every 50 milliseconds
@@ -30,10 +31,24 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_input"), s_input_settings.work_input);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("work_thres"), s_input_settings.work_thres);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickout_state"), s_input_settings.kickout_state);
+  }
 
-    /*char key[20];
-    mg_snprintf(key, sizeof(key), "GPIO%02d", led);
-    mg_ws_printf(...., "{%m: %d}", MG_ESC(key), gpio_read(led));*/
+  if (mg_timer_expired(timer_1s, 1000, now)) {
+    const char* ko_help_1 = "Set AOG to Count/Pressure/Current Sensor according to your setup";
+    const char* ko_help_2 = "Set AOG to \"Count Sensor\". Connect both signals, one to each Kickout Inputs";
+    const char* ko_help_3 = "Set AOG to \"Pressure Sensor\". Connect to Kickout Digital";
+    const char* ko_help_4 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
+    const char* ko_help_5 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
+    const char* ko_help_selected = "Unknown option";
+
+    // check first char of dropdown's selected option to match displayed help text
+    if (s_input_settings.kickout_mode[0] == 'A') ko_help_selected = ko_help_1;
+    else if (s_input_settings.kickout_mode[0] == 'Q') ko_help_selected = ko_help_2;
+    else if (s_input_settings.kickout_mode[0] == 'J') ko_help_selected = ko_help_3;
+    else if (s_input_settings.kickout_mode[0] == 'W') ko_help_selected = ko_help_4;
+    else if (s_input_settings.kickout_mode[0] == 'E') ko_help_selected = ko_help_5;
+
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
   }
 }
 
@@ -128,7 +143,7 @@ void glue_set_comms_settings(struct comms_settings *data) {
   s_comms_settings = *data; // Sync with your device
 }
 
-static struct input_settings s_input_settings = {false, false, 31, 50, "18", true, false};
+static struct input_settings s_input_settings = {false, false, 50, 50, "18", 18, true, false, "AOG Setting"};
 void glue_get_input_settings(struct input_settings *data) {
   *data = s_input_settings;  // Sync with your device
 }

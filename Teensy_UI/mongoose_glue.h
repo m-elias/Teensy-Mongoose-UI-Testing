@@ -102,8 +102,10 @@ struct input_settings {
   int work_input;
   int work_thres;
   char work_hyst[3];
+  int work_hyst_int;
   bool work_invert;
   bool kickout_state;
+  char kickout_mode[30];
 };
 void glue_get_input_settings(struct input_settings *);
 void glue_set_input_settings(struct input_settings *);
