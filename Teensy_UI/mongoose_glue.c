@@ -42,12 +42,13 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     const char* ko_help_selected = "Unknown option";
 
     // check first char of dropdown's selected option to match displayed help text
-    if (s_input_settings.kickout_mode[0] == 'A') ko_help_selected = ko_help_1;
-    else if (s_input_settings.kickout_mode[0] == 'Q') ko_help_selected = ko_help_2;
-    else if (s_input_settings.kickout_mode[0] == 'J') ko_help_selected = ko_help_3;
-    else if (s_input_settings.kickout_mode[0] == 'W') ko_help_selected = ko_help_4;
-    else if (s_input_settings.kickout_mode[0] == 'E') ko_help_selected = ko_help_5;
+    if (s_input_settings.kickout_mode[0] == '1') ko_help_selected = ko_help_1;
+    else if (s_input_settings.kickout_mode[0] == '2') ko_help_selected = ko_help_2;
+    else if (s_input_settings.kickout_mode[0] == '3') ko_help_selected = ko_help_3;
+    else if (s_input_settings.kickout_mode[0] == '4') ko_help_selected = ko_help_4;
+    else if (s_input_settings.kickout_mode[0] == '5') ko_help_selected = ko_help_5;
 
+    //MG_INFO((s_input_settings.kickout_mode));
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
   }
 }
@@ -143,7 +144,7 @@ void glue_set_comms_settings(struct comms_settings *data) {
   s_comms_settings = *data; // Sync with your device
 }
 
-static struct input_settings s_input_settings = {false, false, 50, 50, "18", 18, true, false, "AOG Setting"};
+static struct input_settings s_input_settings = {false, false, 0, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
 void glue_get_input_settings(struct input_settings *data) {
   *data = s_input_settings;  // Sync with your device
 }

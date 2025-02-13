@@ -132,6 +132,7 @@ struct attribute s_input_settings_attributes[] = {
   {"work_hyst_int", "int", NULL, offsetof(struct input_settings, work_hyst_int), 0, false},
   {"work_invert", "bool", NULL, offsetof(struct input_settings, work_invert), 0, false},
   {"kickout_state", "bool", NULL, offsetof(struct input_settings, kickout_state), 0, false},
+  {"kickout_state_color", "string", NULL, offsetof(struct input_settings, kickout_state_color), 8, false},
   {"kickout_mode", "string", NULL, offsetof(struct input_settings, kickout_mode), 30, false},
   {NULL, NULL, NULL, 0, 0, false}
 };

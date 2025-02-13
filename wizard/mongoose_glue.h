@@ -104,6 +104,7 @@ struct input_settings {
   int work_hyst_int;
   bool work_invert;
   bool kickout_state;
+  char kickout_state_color[8];
   char kickout_mode[30];
 };
 void glue_get_input_settings(struct input_settings *);

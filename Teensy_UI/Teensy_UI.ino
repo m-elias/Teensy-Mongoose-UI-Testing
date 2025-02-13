@@ -9,7 +9,7 @@ const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
 //  - read/write from/to this struct
 //  - call glue_get_input_settings(&s_input_global); before making changes
 //  - call glue_set_input_settings(&s_input_global); after making changes
-struct input_settings s_input_global = {
+struct input_settings s_input_global;/* = {
   false,  // bool steer_state
   false,  // bool work_state
   0,      // int work_input
@@ -18,15 +18,15 @@ struct input_settings s_input_global = {
   18,     // int work_hyst_int
   true,   // bool work_invert
   false,  // bool kickout_state
-  "AOG Setting" // char kickout_mode[30]
-};
+  "1 - AOG Setting" // char kickout_mode[30]
+};*/
 
-struct misc_settings s_misc_global = {
+struct misc_settings s_misc_global;/* = {
   false,            // bool update
   "AiO GUI v5.old"  // char fversion[40]
-};
+};*/
 
-const uint16_t EE_IDENT = 2413;
+const uint16_t EE_IDENT = 2415; // change to force EE update
 const uint16_t eeAddr = 0;
 
 #define WAS_A_PIN       A15     // WAS input
@@ -56,21 +56,28 @@ void setup() {
 
   uint16_t eeIdentRead;
   EEPROM.get(eeAddr + 0, eeIdentRead);
+  uint16_t varSize = 0;
+  EEPROM.get(eeAddr + 2, varSize);
 
-  if (eeIdentRead != EE_IDENT) {  // if value in eeprom does not match, overwrite with defaults
-    EEPROM.put(eeAddr + 0, EE_IDENT);           // EEPROM.put() uses EEPROM.update() which only writes to EEPROM when the value has changed
-    EEPROM.put(eeAddr + 2, s_input_global);
-    Serial.print("\r\n- ** EEPROM version mismatch, reset to defaults! **\r\n");
+  // if EE Ident OR the struct size does not match then overwrite with new defaults
+  if (eeIdentRead != EE_IDENT || varSize != sizeof(s_input_global)) {
+    glue_get_input_settings(&s_input_global);
+    EEPROM.put(eeAddr + 0, EE_IDENT);   // EEPROM.put() uses EEPROM.update() which only writes to EEPROM if the value !=
+    EEPROM.put(eeAddr + 2, sizeof(s_input_global));
+    EEPROM.put(eeAddr + 4, s_input_global);
+    Serial.print("\r\n- ** EEPROM reset to new defaults **\r\n");
   } else {
-    EEPROM.get(eeAddr + 2, s_input_global);  // read the Settings saved in EEPROM to the global Settings struct
+    EEPROM.get(eeAddr + 4, s_input_global);  // read the Settings saved in EEPROM to the global Settings struct
     Serial.print("\r\n- loaded settings from EEPROM\r\n");
+    glue_set_input_settings(&s_input_global);
   }
-  glue_set_input_settings(&s_input_global);
 
   glue_get_misc_settings(&s_misc_global);
   strcpy(s_misc_global.fversion, inoVersion);
   glue_set_misc_settings(&s_misc_global);
 }
+
+elapsedMillis kickoutTransitionTimer = 0;
 
 void loop() {
   mongoose_poll();
@@ -100,8 +107,24 @@ void loop() {
     s_input_global.work_input = max(min(round(read), 100), 0);  // limit betwwen 0 - 100
 
     s_input_global.steer_state = !digitalRead(STEER_PIN);
-    s_input_global.kickout_state = !digitalRead(KICKOUT_D_PIN);
-    //s_input_global.update = true;
+    
+    if (s_input_global.kickout_state == digitalRead(KICKOUT_D_PIN)){
+      kickoutTransitionTimer = 0;
+      memcpy(s_input_global.kickout_state_color, "#FFA500", 7);
+      s_input_global.kickout_state = !s_input_global.kickout_state;
+    }
+
+    if (kickoutTransitionTimer > 2000) {
+      if (s_input_global.kickout_state == HIGH) {
+        memcpy(s_input_global.kickout_state_color, "#22c55e", 7);
+      } else {
+        memcpy(s_input_global.kickout_state_color, "#ef4444", 7);
+      }
+    }
+
+
+    
+
 
     glue_set_input_settings(&s_input_global); // push-sync to UI
     glue_update_state();  // triggers UI update, max 1hz regardless of Wizard setting?

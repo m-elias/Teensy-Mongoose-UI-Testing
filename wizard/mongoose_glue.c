@@ -108,7 +108,7 @@ void glue_set_comms_settings(struct comms_settings *data) {
   s_comms_settings = *data; // Sync with your device
 }
 
-static struct input_settings s_input_settings = {false, false, 0, 50, "18", 18, true, false, "AOG Setting"};
+static struct input_settings s_input_settings = {false, false, 0, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
 void glue_get_input_settings(struct input_settings *data) {
   *data = s_input_settings;  // Sync with your device
 }
