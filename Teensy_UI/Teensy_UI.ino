@@ -55,9 +55,9 @@ void setup() {
   //mg_set_ip();  // causes Teensy to hang
 
   uint16_t eeIdentRead;
-  EEPROM.get(eeAddr + 0, eeIdentRead);
+  EEPROM.get(eeAddr + 0, eeIdentRead);  // get eeprom ident, for checking if eeprom needs resetting
   uint16_t varSize = 0;
-  EEPROM.get(eeAddr + 2, varSize);
+  EEPROM.get(eeAddr + 2, varSize);      // get size of struct, if Mongoose wizard has changed struct, reset to new defaults
 
   // if EE Ident OR the struct size does not match then overwrite with new defaults
   if (eeIdentRead != EE_IDENT || varSize != sizeof(s_input_global)) {
