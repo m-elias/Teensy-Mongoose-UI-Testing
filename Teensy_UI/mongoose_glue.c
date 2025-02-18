@@ -35,8 +35,8 @@ void glue_websocket_on_timer(struct mg_connection *c) {
 
   if (mg_timer_expired(timer_1s, 1000, now)) {
     const char* ko_help_1 = "Set AOG to Count/Pressure/Current Sensor according to your setup";
-    const char* ko_help_2 = "Set AOG to \"Count Sensor\". Connect both signals, one to each Kickout Inputs";
-    const char* ko_help_3 = "Set AOG to \"Pressure Sensor\". Connect to Kickout Digital";
+    const char* ko_help_2 = "Set AOG to \"Count Sensor\". Connect both signals, one to each Kickout Input (Analog & Digital)";
+    const char* ko_help_3 = "Set AOG to \"Pressure Sensor\". Connect to Kickout Analog (Fastest response time)";
     const char* ko_help_4 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
     const char* ko_help_5 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
     const char* ko_help_selected = "Unknown option";
