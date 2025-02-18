@@ -1,5 +1,3 @@
-#include "mongoose.h"
-
 extern "C" {
 #include "mongoose_glue.h"
 #define TRNG_ENT_COUNT 16

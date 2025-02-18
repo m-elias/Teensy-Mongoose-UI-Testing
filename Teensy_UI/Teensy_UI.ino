@@ -1,7 +1,6 @@
-#include "mongoose_glue.h"
+#include "mongoose_init.h"
 #include <EEPROM.h>
 #include <Streaming.h>
-#include "mongoose_init.h"
 
 const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
 
@@ -72,9 +71,13 @@ void setup() {
     glue_set_input_settings(&s_input_global);
   }
 
-  glue_get_misc_settings(&s_misc_global);
+  /*glue_get_misc_settings(&s_misc_global);
   strcpy(s_misc_global.fversion, inoVersion);
-  glue_set_misc_settings(&s_misc_global);
+  glue_set_misc_settings(&s_misc_global);*/
+
+  //s_misc_settings.update = true;
+
+  glue_start_save_ip();
 }
 
 elapsedMillis kickoutTransitionTimer = 0;
@@ -157,6 +160,10 @@ void loop() {
       memcpy(s_input_global.work_hyst, "6", 2);
       glue_set_input_settings(&s_input_global); // push-sync to UI
     }
+    if (sRead == 'd') {
+      glue_start_set_work_digital();
+    }
   }
+  
 
 }
