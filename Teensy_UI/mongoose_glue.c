@@ -53,16 +53,6 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   }
 }
 
-// save_ip
-static uint64_t s_action_timeout_save_ip;  // Time when save_ip ends
-bool glue_check_save_ip(void) {
-  return s_action_timeout_save_ip > mg_now(); // Return true if save_ip is in progress
-}
-void glue_start_save_ip(void) {
-  s_action_timeout_save_ip = mg_now() + 250; // Start save_ip, finish after 250ms
-  MG_INFO(("Save IP"));
-}
-
 // reboot
 static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
