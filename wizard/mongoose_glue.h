@@ -69,8 +69,6 @@ void glue_update_state(void);
 
 void glue_websocket_on_timer(struct mg_connection *c);
 
-bool glue_check_save_ip(void);
-void glue_start_save_ip(void);
 bool glue_check_reboot(void);
 void glue_start_reboot(void);
 bool glue_check_dec_work_thres(void);
@@ -84,38 +82,34 @@ void glue_start_set_work_digital(void);
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);
 bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
-struct comms_settings {
-  int bd_ip1;
-  int bd_ip2;
-  int bd_ip3;
-  int bd_ip4;
-  char gps_sync[15];
-  bool gps_pass;
+struct comms {
+  char gpsSync[15];
+  bool gpsPass;
 };
-void glue_get_comms_settings(struct comms_settings *);
-void glue_set_comms_settings(struct comms_settings *);
+void glue_get_comms(struct comms *);
+void glue_set_comms(struct comms *);
 
-struct input_settings {
-  bool steer_state;
-  bool work_state;
-  int work_input;
-  int work_thres;
-  char work_hyst[3];
-  int work_hyst_int;
-  bool work_invert;
-  bool kickout_state;
-  char kickout_state_color[8];
-  char kickout_mode[30];
+struct inputs {
+  bool steerState;
+  bool workState;
+  int workInput;
+  int workThres;
+  char workHystStr[3];
+  int workHystVal;
+  bool workInvert;
+  bool kickoutState;
+  char kickoutStateColor[8];
+  char kickoutModeStr[30];
 };
-void glue_get_input_settings(struct input_settings *);
-void glue_set_input_settings(struct input_settings *);
+void glue_get_inputs(struct inputs *);
+void glue_set_inputs(struct inputs *);
 
-struct misc_settings {
+struct misc {
   bool update;
   char fversion[40];
 };
-void glue_get_misc_settings(struct misc_settings *);
-void glue_set_misc_settings(struct misc_settings *);
+void glue_get_misc(struct misc *);
+void glue_set_misc(struct misc *);
 
 
 #ifdef __cplusplus

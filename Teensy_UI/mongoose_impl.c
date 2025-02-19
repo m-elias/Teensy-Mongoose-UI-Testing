@@ -114,56 +114,50 @@ struct apihandler_array {
   uint64_t (*sizer)(void);             // Array size, for data handlers only
 };
 
-struct attribute s_comms_settings_attributes[] = {
-  {"bd_ip1", "int", NULL, offsetof(struct comms_settings, bd_ip1), 0, false},
-  {"bd_ip2", "int", NULL, offsetof(struct comms_settings, bd_ip2), 0, false},
-  {"bd_ip3", "int", NULL, offsetof(struct comms_settings, bd_ip3), 0, false},
-  {"bd_ip4", "int", NULL, offsetof(struct comms_settings, bd_ip4), 0, false},
-  {"gps_sync", "string", NULL, offsetof(struct comms_settings, gps_sync), 15, false},
-  {"gps_pass", "bool", NULL, offsetof(struct comms_settings, gps_pass), 0, false},
+struct attribute s_comms_attributes[] = {
+  {"gpsSync", "string", NULL, offsetof(struct comms, gpsSync), 15, false},
+  {"gpsPass", "bool", NULL, offsetof(struct comms, gpsPass), 0, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
-struct attribute s_input_settings_attributes[] = {
-  {"steer_state", "bool", NULL, offsetof(struct input_settings, steer_state), 0, false},
-  {"work_state", "bool", NULL, offsetof(struct input_settings, work_state), 0, false},
-  {"work_input", "int", NULL, offsetof(struct input_settings, work_input), 0, false},
-  {"work_thres", "int", NULL, offsetof(struct input_settings, work_thres), 0, false},
-  {"work_hyst", "string", NULL, offsetof(struct input_settings, work_hyst), 3, false},
-  {"work_hyst_int", "int", NULL, offsetof(struct input_settings, work_hyst_int), 0, false},
-  {"work_invert", "bool", NULL, offsetof(struct input_settings, work_invert), 0, false},
-  {"kickout_state", "bool", NULL, offsetof(struct input_settings, kickout_state), 0, false},
-  {"kickout_state_color", "string", NULL, offsetof(struct input_settings, kickout_state_color), 8, false},
-  {"kickout_mode", "string", NULL, offsetof(struct input_settings, kickout_mode), 30, false},
+struct attribute s_inputs_attributes[] = {
+  {"steerState", "bool", NULL, offsetof(struct inputs, steerState), 0, false},
+  {"workState", "bool", NULL, offsetof(struct inputs, workState), 0, false},
+  {"workInput", "int", NULL, offsetof(struct inputs, workInput), 0, false},
+  {"workThres", "int", NULL, offsetof(struct inputs, workThres), 0, false},
+  {"workHystStr", "string", NULL, offsetof(struct inputs, workHystStr), 3, false},
+  {"workHystVal", "int", NULL, offsetof(struct inputs, workHystVal), 0, false},
+  {"workInvert", "bool", NULL, offsetof(struct inputs, workInvert), 0, false},
+  {"kickoutState", "bool", NULL, offsetof(struct inputs, kickoutState), 0, false},
+  {"kickoutStateColor", "string", NULL, offsetof(struct inputs, kickoutStateColor), 8, false},
+  {"kickoutModeStr", "string", NULL, offsetof(struct inputs, kickoutModeStr), 30, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
-struct attribute s_misc_settings_attributes[] = {
-  {"update", "bool", NULL, offsetof(struct misc_settings, update), 0, false},
-  {"fversion", "string", NULL, offsetof(struct misc_settings, fversion), 40, false},
+struct attribute s_misc_attributes[] = {
+  {"update", "bool", NULL, offsetof(struct misc, update), 0, false},
+  {"fversion", "string", NULL, offsetof(struct misc, fversion), 40, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 
-struct apihandler_action s_apihandler_save_ip = {{"save_ip", "action", false, 3, 7, 0UL}, glue_check_save_ip, glue_start_save_ip};
 struct apihandler_action s_apihandler_reboot = {{"reboot", "action", false, 3, 7, 0UL}, glue_check_reboot, glue_start_reboot};
 struct apihandler_action s_apihandler_dec_work_thres = {{"dec_work_thres", "action", false, 3, 7, 0UL}, glue_check_dec_work_thres, glue_start_dec_work_thres};
 struct apihandler_action s_apihandler_set_work_thres = {{"set_work_thres", "action", false, 3, 7, 0UL}, glue_check_set_work_thres, glue_start_set_work_thres};
 struct apihandler_action s_apihandler_inc_work_thres = {{"inc_work_thres", "action", false, 3, 7, 0UL}, glue_check_inc_work_thres, glue_start_inc_work_thres};
 struct apihandler_action s_apihandler_set_work_digital = {{"set_work_digital", "action", false, 3, 7, 0UL}, glue_check_set_work_digital, glue_start_set_work_digital};
 struct apihandler_ota s_apihandler_firmware_update = {{"firmware_update", "ota", false, 3, 7, 0UL}, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update};
-struct apihandler_data s_apihandler_comms_settings = {{"comms_settings", "data", false, 3, 7, 0UL}, s_comms_settings_attributes, sizeof(struct comms_settings), (void (*)(void *)) glue_get_comms_settings, (void (*)(void *)) glue_set_comms_settings};
-struct apihandler_data s_apihandler_input_settings = {{"input_settings", "data", false, 3, 7, 0UL}, s_input_settings_attributes, sizeof(struct input_settings), (void (*)(void *)) glue_get_input_settings, (void (*)(void *)) glue_set_input_settings};
-struct apihandler_data s_apihandler_misc_settings = {{"misc_settings", "data", false, 3, 7, 0UL}, s_misc_settings_attributes, sizeof(struct misc_settings), (void (*)(void *)) glue_get_misc_settings, (void (*)(void *)) glue_set_misc_settings};
+struct apihandler_data s_apihandler_comms = {{"comms", "data", false, 3, 7, 0UL}, s_comms_attributes, sizeof(struct comms), (void (*)(void *)) glue_get_comms, (void (*)(void *)) glue_set_comms};
+struct apihandler_data s_apihandler_inputs = {{"inputs", "data", false, 3, 7, 0UL}, s_inputs_attributes, sizeof(struct inputs), (void (*)(void *)) glue_get_inputs, (void (*)(void *)) glue_set_inputs};
+struct apihandler_data s_apihandler_misc = {{"misc", "data", false, 3, 7, 0UL}, s_misc_attributes, sizeof(struct misc), (void (*)(void *)) glue_get_misc, (void (*)(void *)) glue_set_misc};
 
 static struct apihandler *s_apihandlers[] = {
-  (struct apihandler *) &s_apihandler_save_ip,
   (struct apihandler *) &s_apihandler_reboot,
   (struct apihandler *) &s_apihandler_dec_work_thres,
   (struct apihandler *) &s_apihandler_set_work_thres,
   (struct apihandler *) &s_apihandler_inc_work_thres,
   (struct apihandler *) &s_apihandler_set_work_digital,
   (struct apihandler *) &s_apihandler_firmware_update,
-  (struct apihandler *) &s_apihandler_comms_settings,
-  (struct apihandler *) &s_apihandler_input_settings,
-  (struct apihandler *) &s_apihandler_misc_settings
+  (struct apihandler *) &s_apihandler_comms,
+  (struct apihandler *) &s_apihandler_inputs,
+  (struct apihandler *) &s_apihandler_misc
 };
 
 static struct apihandler *get_api_handler(struct mg_str name) {

@@ -30,15 +30,6 @@ void glue_websocket_on_timer(struct mg_connection *c) {
 }
 
 
-// save_ip
-static uint64_t s_action_timeout_save_ip;  // Time when save_ip ends
-bool glue_check_save_ip(void) {
-  return s_action_timeout_save_ip > mg_now(); // Return true if save_ip is in progress
-}
-void glue_start_save_ip(void) {
-  s_action_timeout_save_ip = mg_now() + 1000; // Start save_ip, finish after 1 second
-}
-
 // reboot
 static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
@@ -100,26 +91,26 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms_settings s_comms_settings = {192, 168, 5, 126, "60ms - F9P", false};
-void glue_get_comms_settings(struct comms_settings *data) {
-  *data = s_comms_settings;  // Sync with your device
+static struct comms s_comms = {"60ms - F9P", false};
+void glue_get_comms(struct comms *data) {
+  *data = s_comms;  // Sync with your device
 }
-void glue_set_comms_settings(struct comms_settings *data) {
-  s_comms_settings = *data; // Sync with your device
-}
-
-static struct input_settings s_input_settings = {false, false, 50, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
-void glue_get_input_settings(struct input_settings *data) {
-  *data = s_input_settings;  // Sync with your device
-}
-void glue_set_input_settings(struct input_settings *data) {
-  s_input_settings = *data; // Sync with your device
+void glue_set_comms(struct comms *data) {
+  s_comms = *data; // Sync with your device
 }
 
-static struct misc_settings s_misc_settings = {false, "AiO GUI v5.old"};
-void glue_get_misc_settings(struct misc_settings *data) {
-  *data = s_misc_settings;  // Sync with your device
+static struct inputs s_inputs = {false, false, 50, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
+void glue_get_inputs(struct inputs *data) {
+  *data = s_inputs;  // Sync with your device
 }
-void glue_set_misc_settings(struct misc_settings *data) {
-  s_misc_settings = *data; // Sync with your device
+void glue_set_inputs(struct inputs *data) {
+  s_inputs = *data; // Sync with your device
+}
+
+static struct misc s_misc = {false, "AiO GUI v5.old"};
+void glue_get_misc(struct misc *data) {
+  *data = s_misc;  // Sync with your device
+}
+void glue_set_misc(struct misc *data) {
+  s_misc = *data; // Sync with your device
 }
