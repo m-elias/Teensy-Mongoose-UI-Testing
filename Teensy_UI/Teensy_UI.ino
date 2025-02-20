@@ -9,24 +9,10 @@ const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
 //  - read/write from/to this struct
 //  - call glue_get_inputs(&input_vars); before making changes
 //  - call glue_set_inputs(&input_vars); after making changes
-struct inputs input_vars;/* = {
-  false,  // bool steer_state
-  false,  // bool work_state
-  0,      // int work_input
-  50,     // int work_thres
-  "18",   // char work_hyst[3]
-  18,     // int work_hyst_int
-  true,   // bool work_invert
-  false,  // bool kickout_state
-  "1 - AOG Setting" // char kickout_mode[30]
-};*/
+struct inputs input_vars;
+struct misc misc_vars;
 
-struct misc misc_vars;/* = {
-  false,            // bool update
-  "AiO GUI v5.old"  // char fversion[40]
-};*/
-
-const uint16_t EE_IDENT = 2415; // change to force EE update
+const uint16_t EE_IDENT = 2416; // change to force EE update
 const uint16_t eeAddr = 0;
 
 #define WAS_A_PIN       A15     // WAS input
@@ -164,7 +150,7 @@ void loop() {
       glue_get_inputs(&input_vars); // pull-sync from UI
       Serial.printf("steerDisabled: %i->", input_vars.steerDisabled);
       input_vars.steerDisabled = !input_vars.steerDisabled;
-      Serial.printf("%i", input_vars.steerDisabled);
+      Serial.printf("%i\r\n", input_vars.steerDisabled);
       glue_set_inputs(&input_vars); // push-sync to UI
     }
   }

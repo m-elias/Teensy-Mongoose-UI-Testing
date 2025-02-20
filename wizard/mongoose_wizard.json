@@ -59,7 +59,7 @@
       "attributes": {
         "kickoutDisabled": {"type": "bool", "value": false}, 
         "workDisabled": {"type": "bool", "value": false}, 
-        "steerDisabled": {"type": "bool", "value": false}, 
+        "steerDisabled": {"type": "bool", "value": true}, 
         "steerState": {"type": "bool", "value": false}, 
         "workState": {"type": "bool", "value": false}, 
         "workInput": {"type": "int", "value": 50}, 
@@ -141,15 +141,18 @@
       {"title": "Inputs", "icon": "options", "classes": "page", "layout": [
           {"type": "container", "classes": "container-h wrap", "css": "align-items: start;", "layout": [
               {"type": "container", "classes": "panel", "css": "background:#D1F8EF;", "layout": [
-                  {"type": "text", "format": "Input Switches & Sensors", "classes": "title", "css": "background: #578FCA;"},
+                  {"type": "text", "format": "Input Switches & Sensors", "classes": "title", "css": "background:#578FCA;"},
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Steer Switch", "classes": "subtitle1", "conditions": [], "css": "background-color:#A1E3F9;"},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
                           {"type": "status", "ref": "websocket.steerState", "labels": "OFF,ON", "css": "flex: 0 0 2em;", "classes": "", "conditions": [
-                              {"expr": "inputs.steerDisabled", "classes": "", "css": "", "attrs": {"disabled": "true"}}
-                            ]}
+                              {"expr": "inputs.steerDisabled", "classes": "", "css": "", "attrs": {"disabled": true}}
+                            ]},
+                          {"format": "${inputs.steerDisabled}", "css": ""}
                         ]}
-                    ], "css": "flex: 0 0 0em;", "conditions": []},
+                    ], "css": "flex: 0 0 0em;", "conditions": [
+                      {"expr": "1>", "classes": "", "css": "", "attrs": {"disabled": true}}
+                    ]},
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Work Switch/Analog Input", "classes": "subtitle1", "conditions": [], "css": "background-color:#A1E3F9;"},
                       {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
@@ -202,12 +205,10 @@
                           {"format": "${websocket.kickout_dropdown_help}", "classes": "", "css": ""}
                         ], "conditions": []}
                     ], "css": "flex: 0 0 0em;", "conditions": [
-                      {"expr": "inputs.kickoutDisabled", "classes": "", "css": "", "attrs": {"disabled": "true"}}
+                      {"expr": "1", "classes": "", "css": "", "attrs": {"disabled": "true"}}
                     ]}
                 ]}
-            ], "conditions": [
-              {"expr": "", "classes": "", "css": ""}
-            ]}
+            ], "conditions": []}
         ], "css": ""},
       {"title": "Outputs", "icon": "activity", "classes": "page", "layout": [
           {"type": "container", "classes": "container-h wrap", "css": "align-items: start;", "layout": [
