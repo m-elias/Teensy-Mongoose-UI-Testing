@@ -134,6 +134,21 @@ void loop() {
 
   if (Serial.available()) {
     uint8_t sRead = Serial.read();
+    if (sRead == 's') {
+      glue_get_inputs(&input_vars); // pull-sync from UI
+      input_vars.steerEnabled = !input_vars.steerEnabled;
+      glue_set_inputs(&input_vars); // push-sync to UI
+    }
+    if (sRead == 'k') {
+      glue_get_inputs(&input_vars); // pull-sync from UI
+      input_vars.kickoutEnabled = !input_vars.kickoutEnabled;
+      glue_set_inputs(&input_vars); // push-sync to UI
+    }
+    if (sRead == 'w') {
+      glue_get_inputs(&input_vars); // pull-sync from UI
+      input_vars.workEnabled = !input_vars.workEnabled;
+      glue_set_inputs(&input_vars); // push-sync to UI
+    }
     if (sRead == 'i') {
       glue_get_inputs(&input_vars); // pull-sync from UI
       input_vars.workInvert = !input_vars.workInvert;
@@ -146,13 +161,6 @@ void loop() {
     }
     if (sRead == 'd') {
       glue_start_set_work_digital();
-    }
-    if (sRead == 's') {
-      glue_get_inputs(&input_vars); // pull-sync from UI
-      Serial.printf("steerDisabled: %i->", input_vars.steerDisabled);
-      input_vars.steerDisabled = !input_vars.steerDisabled;
-      Serial.printf("%i\r\n", input_vars.steerDisabled);
-      glue_set_inputs(&input_vars); // push-sync to UI
     }
   }
 }
