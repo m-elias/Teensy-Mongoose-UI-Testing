@@ -120,6 +120,9 @@ struct attribute s_comms_attributes[] = {
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_inputs_attributes[] = {
+  {"kickoutDisabled", "bool", NULL, offsetof(struct inputs, kickoutDisabled), 0, false},
+  {"workDisabled", "bool", NULL, offsetof(struct inputs, workDisabled), 0, false},
+  {"steerDisabled", "bool", NULL, offsetof(struct inputs, steerDisabled), 0, false},
   {"steerState", "bool", NULL, offsetof(struct inputs, steerState), 0, false},
   {"workState", "bool", NULL, offsetof(struct inputs, workState), 0, false},
   {"workInput", "int", NULL, offsetof(struct inputs, workInput), 0, false},

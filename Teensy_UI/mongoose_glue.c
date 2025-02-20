@@ -61,10 +61,10 @@ void glue_websocket_on_timer(struct mg_connection *c) {
 static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
   return s_action_timeout_reboot > mg_now(); // Return true if reboot is in progress
-
 }
 void glue_start_reboot(void) {
-  s_action_timeout_reboot = mg_now() + 7000; // Start reboot, finish after 3 seconds
+  s_action_timeout_reboot = mg_now() + 4000; // This timer doesn't do anything because the Teensy reboots and forgets about the timer
+  MG_INFO(("rebooting"));
   SCB_AIRCR = 0x05FA0004; // Teensy reboot
 }
 
@@ -139,7 +139,7 @@ void glue_set_comms(struct comms *data) {
   s_comms = *data; // Sync with your device
 }
 
-static struct inputs s_inputs = {false, false, 50, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
+static struct inputs s_inputs = {false, false, false, false, false, 50, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
 void glue_get_inputs(struct inputs *data) {
   *data = s_inputs;  // Sync with your device
 }

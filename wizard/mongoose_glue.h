@@ -90,6 +90,9 @@ void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);
 
 struct inputs {
+  bool kickoutDisabled;
+  bool workDisabled;
+  bool steerDisabled;
   bool steerState;
   bool workState;
   int workInput;

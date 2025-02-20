@@ -160,6 +160,12 @@ void loop() {
     if (sRead == 'd') {
       glue_start_set_work_digital();
     }
+    if (sRead == 's') {
+      glue_get_inputs(&input_vars); // pull-sync from UI
+      Serial.printf("steerDisabled: %i->", input_vars.steerDisabled);
+      input_vars.steerDisabled = !input_vars.steerDisabled;
+      Serial.printf("%i", input_vars.steerDisabled);
+      glue_set_inputs(&input_vars); // push-sync to UI
+    }
   }
-
 }
