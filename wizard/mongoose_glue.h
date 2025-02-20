@@ -109,7 +109,7 @@ void glue_set_inputs(struct inputs *);
 
 struct misc {
   bool update;
-  char fversion[40];
+  char fversion[50];
 };
 void glue_get_misc(struct misc *);
 void glue_set_misc(struct misc *);

@@ -137,7 +137,7 @@ struct attribute s_inputs_attributes[] = {
 };
 struct attribute s_misc_attributes[] = {
   {"update", "bool", NULL, offsetof(struct misc, update), 0, false},
-  {"fversion", "string", NULL, offsetof(struct misc, fversion), 40, false},
+  {"fversion", "string", NULL, offsetof(struct misc, fversion), 50, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 

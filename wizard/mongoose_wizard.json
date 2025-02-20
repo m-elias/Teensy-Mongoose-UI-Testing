@@ -78,7 +78,7 @@
       "write_level": 7, 
       "attributes": {
         "update": {"type": "bool", "value": false}, 
-        "fversion": {"type": "string", "value": "AiO GUI v5.old", "size": 40}
+        "fversion": {"type": "string", "value": "AiO GUI v5.old", "size": 50}
       }
     }
   }, 
@@ -151,7 +151,7 @@
                           {"format": "${inputs.steerDisabled}", "css": ""}
                         ]}
                     ], "css": "flex: 0 0 0em;", "conditions": [
-                      {"expr": "1>", "classes": "", "css": "", "attrs": {"disabled": true}}
+                      {"expr": "1", "classes": "", "css": "", "attrs": {"disabled": true}}
                     ]},
                   {"type": "container", "classes": "panel", "layout": [
                       {"type": "text", "format": "Work Switch/Analog Input", "classes": "subtitle1", "conditions": [], "css": "background-color:#A1E3F9;"},
@@ -232,7 +232,7 @@
                   {"type": "text", "format": "Firmware Update", "classes": "title", "css": "background: #578FCA;"},
                   {"type": "container", "classes": "form-control", "layout": [
                       {"type": "text", "format": "Current Version:", "classes": "", "css": ""},
-                      {"format": "${misc_settings.fversion}", "classes": "", "css": ""}
+                      {"format": "${misc.fversion}", "classes": "", "css": ""}
                     ], "css": ""},
                   {"type": "container", "classes": "form-control", "layout": [
                       {"type": "text", "classes": "", "format": "Update Firmware:"},

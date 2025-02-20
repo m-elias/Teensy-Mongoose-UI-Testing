@@ -3,7 +3,7 @@
 #include <Streaming.h>
 #include "mongoose_init.h"
 
-const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
+const char* inoVersion = "AiO v6.0d Web GUI - " __DATE__ " " __TIME__;
 
 // globally available, working settings struct
 //  - read/write from/to this struct
@@ -30,6 +30,7 @@ void setup() {
   Serial.begin(115200);
   //while (!Serial) delay(50);
   Serial.print("\r\n\n\n*********************\r\nStarting setup...\r\n");
+  Serial.println(inoVersion);
 
   //MG_ERROR(("Hello1"));
   //MG_INFO(("Hello2"));
