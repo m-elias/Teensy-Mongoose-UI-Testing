@@ -70,13 +70,14 @@ elapsedMillis kickoutTransitionTimer = 0;
 
 void loop() {
   mongoose_poll();
+  LEDs.updateLoop();
 
   static elapsedMillis miscTimer = 0;
   if (miscTimer > 499) { // 2hz
     miscTimer -= 500;   // try to maintain steady 2hz
     glue_get_misc(&misc_vars); // pull-sync from UI
 
-    //LEDs.setBrightness(int(float(misc_vars.rgbBrightness) / 2.55));
+    LEDs.setBrightness(int(float(misc_vars.rgbBrightness) / 2.55));
   }
 
 
