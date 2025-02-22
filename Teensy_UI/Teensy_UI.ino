@@ -3,7 +3,7 @@
 #include <Streaming.h>
 #include "mongoose_init.h"
 
-const char* inoVersion = "AiO v6.0d Web GUI - " __DATE__ " " __TIME__;
+const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
 
 // globally available, working settings struct
 //  - read/write from/to this struct
@@ -12,7 +12,7 @@ const char* inoVersion = "AiO v6.0d Web GUI - " __DATE__ " " __TIME__;
 struct inputs input_vars;
 struct misc misc_vars;
 
-const uint16_t EE_IDENT = 2416; // change to force EE update
+const uint16_t EE_IDENT = 2417; // change to force EE update
 const uint16_t eeAddr = 0;
 
 #include "inputs.h"

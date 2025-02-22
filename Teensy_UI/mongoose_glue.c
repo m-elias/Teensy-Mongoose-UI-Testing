@@ -33,7 +33,6 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workThres"), s_inputs.workThres);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutState"), s_inputs.kickoutState);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutStateHist"), s_inputs.kickoutStateHist);
-    //MG_INFO((s_inputs.kickoutStateColor));
   }
 
 
@@ -45,7 +44,7 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     const char* ko_help_3 = "Set AOG to \"Pressure Sensor\". Connect to Kickout Analog (Fastest response time)";
     const char* ko_help_4 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
     const char* ko_help_5 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
-    const char* ko_help_selected = "Unknown option";
+    const char* ko_help_selected = "Unknown option/error, reselect the above.";
 
     // check first char of dropdown's selected option to match displayed help text
     if (s_inputs.kickoutModeStr[0] == '1') ko_help_selected = ko_help_1;
@@ -54,7 +53,7 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     else if (s_inputs.kickoutModeStr[0] == '4') ko_help_selected = ko_help_4;
     else if (s_inputs.kickoutModeStr[0] == '5') ko_help_selected = ko_help_5;
 
-    //MG_INFO((s_inputs.kickoutModeStr));
+    MG_INFO((s_inputs.kickoutModeStr));
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
     oldKickoutMode = s_inputs.kickoutModeStr[0];
   }

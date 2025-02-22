@@ -97,7 +97,7 @@
               {"classes": "panel", "css": "width: 22rem;", "layout": [
                   {"classes": "subtitle1", "format": "Comms", "css": ""}
                 ]},
-              {"classes": "panel", "css": "flex: 0 0 auto;width:10rem;", "layout": [
+              {"classes": "panel", "layout": [
                   {"classes": "subtitle1", "format": "Inputs", "css": ""},
                   {"classes": "form-control", "layout": [
                       {"format": "Steer"},
@@ -210,7 +210,7 @@
                             ], "conditions": []},
                           {"type": "container", "classes": "", "css": "display:flex;", "layout": [
                               {"format": "Threshold", "classes": "", "css": ""},
-                              {"type": "slider", "ref": "i.workThres", "autosave": true, "min": "0", "max": "100"}
+                              {"type": "slider", "ref": "inputs.workThres", "autosave": true, "min": "0", "max": "100"}
                             ], "conditions": []},
                           {"type": "container", "classes": "form-control", "layout": [
                               {"type": "action", "title": "dec", "icon": "minus", "ref": "dec_work_thres"},
@@ -245,7 +245,7 @@
                                 ], "css": "color:orange;"}
                             ]},
                           {"type": "container", "classes": "form-control", "css": "gap: 1em;", "layout": [
-                              {"type": "dropdown", "ref": "inputs.kickoutModeStr", "options": "1 - AOG Setting (default),2 - Quadrature Encoder,3 - JD Variable Duty Encoder,4 - WAS-PWM Ratio,5 - Encoder Speed", "css": "", "autosave": true}
+                              {"type": "dropdown", "ref": "inputs.kickoutModeStr", "options": "1 - AOG Setting (default),2 - Quadrature Encoder,3 - JD Variable Duty Encoder,4 - WAS-PWM Ratio,5 - Encoder Speed", "autosave": true}
                             ]},
                           {"type": "container", "classes": "form-control", "css": "flex: 0 0 auto;width:23rem;", "layout": [
                               {"format": "${websocket.kickout_dropdown_help}"}
