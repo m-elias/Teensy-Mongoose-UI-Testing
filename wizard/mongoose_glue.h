@@ -108,6 +108,7 @@ void glue_get_inputs(struct inputs *);
 void glue_set_inputs(struct inputs *);
 
 struct misc {
+  int rgbBrightness;
   bool update;
   char fversion[50];
 };

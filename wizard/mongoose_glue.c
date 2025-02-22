@@ -107,7 +107,7 @@ void glue_set_inputs(struct inputs *data) {
   s_inputs = *data; // Sync with your device
 }
 
-static struct misc s_misc = {false, "AiO GUI v5.old"};
+static struct misc s_misc = {75, false, "AiO GUI v5.old"};
 void glue_get_misc(struct misc *data) {
   *data = s_misc;  // Sync with your device
 }

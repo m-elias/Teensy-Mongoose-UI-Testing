@@ -77,6 +77,7 @@
       "read_level": 3, 
       "write_level": 7, 
       "attributes": {
+        "rgbBrightness": {"type": "int", "value": 75}, 
         "update": {"type": "bool", "value": false}, 
         "fversion": {"type": "string", "value": "AiO GUI v5.old", "size": 50}
       }
@@ -94,11 +95,11 @@
     "pages": [
       {"title": "Status", "icon": "home", "classes": "page", "layout": [
           {"css": "flex-wrap:wrap; gap: 0.5rem; align-items: start; display: flex;", "layout": [
-              {"classes": "panel", "css": "width: 22rem;", "layout": [
-                  {"classes": "subtitle1", "format": "Comms", "css": ""}
+              {"classes": "panel", "css": "flex: 0 0 auto;width:22rem;", "layout": [
+                  {"classes": "title", "format": "Comms"}
                 ]},
               {"classes": "panel", "layout": [
-                  {"classes": "subtitle1", "format": "Inputs", "css": ""},
+                  {"classes": "title", "format": "Inputs"},
                   {"classes": "form-control", "layout": [
                       {"format": "Steer"},
                       {"classes": "form-control", "layout": [
@@ -137,11 +138,17 @@
                         ]}
                     ], "css": "height:1.75rem;"}
                 ]},
-              {"classes": "panel", "css": "flex: 0 0 auto;width:10rem;", "layout": [
-                  {"classes": "subtitle1", "format": "Reboot Teensy", "css": ""},
-                  {"classes": "labeled", "layout": [
+              {"classes": "panel", "layout": [
+                  {"classes": "title", "format": "Misc"},
+                  {"layout": [
                       {"type": "action", "ref": "reboot", "title": "reboot", "icon": "reload", "css": ""}
-                    ], "css": ""}
+                    ]},
+                  {"classes": "panel", "css": "flex: 0 0 auto;width:22rem;", "layout": [
+                      {"classes": "subtitle1", "format": "Front Panel LED Brightness"},
+                      {"layout": [
+                          {"type": "slider", "ref": "misc.rgbBrightness", "autosave": true, "min": "0", "max": "100"}
+                        ]}
+                    ]}
                 ]}
             ]}
         ], "css": ""},

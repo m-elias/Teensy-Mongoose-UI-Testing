@@ -17,6 +17,10 @@ const uint16_t eeAddr = 0;
 
 #include "inputs.h"
 
+#include "LEDS.h"
+LEDS LEDs = LEDS(1000, 255, 64, 127);   // 1000ms RGB update, 255/64/127 RGB brightness balance levels for v5.0a
+
+
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
@@ -57,6 +61,9 @@ void setup() {
   glue_set_misc(&misc_vars);
 
   initializeInputs();
+  LEDs.init();
+  LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::PWR_ON);
+  LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::ETH_READY);
 }
 
 elapsedMillis kickoutTransitionTimer = 0;
@@ -64,10 +71,18 @@ elapsedMillis kickoutTransitionTimer = 0;
 void loop() {
   mongoose_poll();
 
+  static elapsedMillis miscTimer = 0;
+  if (miscTimer > 499) { // 2hz
+    miscTimer -= 500;   // try to maintain steady 2hz
+    glue_get_misc(&misc_vars); // pull-sync from UI
+
+    //LEDs.setBrightness(int(float(misc_vars.rgbBrightness) / 2.55));
+  }
+
+
   static elapsedMillis inputsTimer = 0;
   if (inputsTimer > 99) { // 10hz
     inputsTimer -= 100;   // try to maintain steady 10hz
-    static bool workState = 0;
     glue_get_inputs(&input_vars); // pull-sync from UI
 
     // **** read analog WORK input ****
@@ -83,6 +98,7 @@ void loop() {
     if (input_vars.workInvert) read = 100 - read;  // option to invert input polarity
 
     input_vars.workHystVal = atoi(input_vars.workHystStr);
+    static bool workState = 0;
     if (read < max(input_vars.workThres - input_vars.workHystVal, 10)) {  // limit to >10% (0.33V)
       workState = LOW;
     }

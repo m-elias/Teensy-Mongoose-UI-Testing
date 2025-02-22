@@ -136,6 +136,7 @@ struct attribute s_inputs_attributes[] = {
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_misc_attributes[] = {
+  {"rgbBrightness", "int", NULL, offsetof(struct misc, rgbBrightness), 0, false},
   {"update", "bool", NULL, offsetof(struct misc, update), 0, false},
   {"fversion", "string", NULL, offsetof(struct misc, fversion), 50, false},
   {NULL, NULL, NULL, 0, 0, false}

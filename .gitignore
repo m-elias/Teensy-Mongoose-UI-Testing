@@ -1,4 +1,4 @@
 
-Teensy_UI/mongoose_glue.c.bak
-Teensy_UI/mongoose_glue.c.bak
 *.bak
+/Teensy_UI/build/teensy.avr.teensy41/*
+!Teensy_UI.ino.hex
