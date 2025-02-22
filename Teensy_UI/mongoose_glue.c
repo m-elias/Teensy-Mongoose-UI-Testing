@@ -20,22 +20,26 @@ void glue_init(void) {
 
 // This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
 void glue_websocket_on_timer(struct mg_connection *c) {
-  uint64_t *timer_work = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
+  uint64_t *timer_inputs = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
   uint64_t *timer_2s = (uint64_t *) &c->data[sizeof(uint64_t)];
   uint64_t now = mg_millis();
 
-  // Send updates to websocket work widgets value every 50 milliseconds
-  if (mg_timer_expired(timer_work, 50, now) || s_misc.update) {
+  // Send websocket updates for "Inputs" values every 50 milliseconds
+  if (mg_timer_expired(timer_inputs, 50, now) || s_misc.update) {
     s_misc.update = false;
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("steerState"), s_inputs.steerState);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workState"), s_inputs.workState);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workInput"), s_inputs.workInput);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workThres"), s_inputs.workThres);
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutState"), s_inputs.kickoutState);
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutStateHist"), s_inputs.kickoutStateHist);
+    //MG_INFO((s_inputs.kickoutStateColor));
   }
 
+
+  // Update help text in Kickout panel according to option selected in dropdown
   static uint8_t oldKickoutMode = 0;
-  if (oldKickoutMode != s_inputs.kickoutModeStr[0] || mg_timer_expired(timer_2s, 2000, now)) {
+  if (oldKickoutMode != s_inputs.kickoutModeStr[0] || mg_timer_expired(timer_2s, 2000, now)) { // update immediately and every 2s
     const char* ko_help_1 = "Set AOG to Count/Pressure/Current Sensor according to your setup";
     const char* ko_help_2 = "Set AOG to \"Count Sensor\". Connect both signals, one to each Kickout Input (Analog & Digital)";
     const char* ko_help_3 = "Set AOG to \"Pressure Sensor\". Connect to Kickout Analog (Fastest response time)";
@@ -50,7 +54,7 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     else if (s_inputs.kickoutModeStr[0] == '4') ko_help_selected = ko_help_4;
     else if (s_inputs.kickoutModeStr[0] == '5') ko_help_selected = ko_help_5;
 
-    MG_INFO((s_inputs.kickoutModeStr));
+    //MG_INFO((s_inputs.kickoutModeStr));
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
     oldKickoutMode = s_inputs.kickoutModeStr[0];
   }
@@ -138,7 +142,7 @@ void glue_set_comms(struct comms *data) {
   s_comms = *data; // Sync with your device
 }
 
-static struct inputs s_inputs = {2, 2, 2, false, false, 50, 50, "18", 18, true, false, "#f064f0", "1 - AOG Setting (default)"};
+static struct inputs s_inputs = {2, false, 2, false, 50, true, 50, "18", 18, 2, false, 0, "1 - AOG Setting (default)"};
 void glue_get_inputs(struct inputs *data) {
   *data = s_inputs;  // Sync with your device
 }

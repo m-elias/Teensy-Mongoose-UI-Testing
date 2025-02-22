@@ -120,18 +120,18 @@ struct attribute s_comms_attributes[] = {
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_inputs_attributes[] = {
-  {"kickoutEnabled", "int", NULL, offsetof(struct inputs, kickoutEnabled), 0, false},
-  {"workEnabled", "int", NULL, offsetof(struct inputs, workEnabled), 0, false},
   {"steerEnabled", "int", NULL, offsetof(struct inputs, steerEnabled), 0, false},
   {"steerState", "bool", NULL, offsetof(struct inputs, steerState), 0, false},
+  {"workEnabled", "int", NULL, offsetof(struct inputs, workEnabled), 0, false},
   {"workState", "bool", NULL, offsetof(struct inputs, workState), 0, false},
   {"workInput", "int", NULL, offsetof(struct inputs, workInput), 0, false},
+  {"workInvert", "bool", NULL, offsetof(struct inputs, workInvert), 0, false},
   {"workThres", "int", NULL, offsetof(struct inputs, workThres), 0, false},
   {"workHystStr", "string", NULL, offsetof(struct inputs, workHystStr), 3, false},
   {"workHystVal", "int", NULL, offsetof(struct inputs, workHystVal), 0, false},
-  {"workInvert", "bool", NULL, offsetof(struct inputs, workInvert), 0, false},
+  {"kickoutEnabled", "int", NULL, offsetof(struct inputs, kickoutEnabled), 0, false},
   {"kickoutState", "bool", NULL, offsetof(struct inputs, kickoutState), 0, false},
-  {"kickoutStateColor", "string", NULL, offsetof(struct inputs, kickoutStateColor), 8, false},
+  {"kickoutStateHist", "int", NULL, offsetof(struct inputs, kickoutStateHist), 0, false},
   {"kickoutModeStr", "string", NULL, offsetof(struct inputs, kickoutModeStr), 30, false},
   {NULL, NULL, NULL, 0, 0, false}
 };

@@ -90,18 +90,18 @@ void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);
 
 struct inputs {
-  int kickoutEnabled;
-  int workEnabled;
   int steerEnabled;
   bool steerState;
+  int workEnabled;
   bool workState;
   int workInput;
+  bool workInvert;
   int workThres;
   char workHystStr[3];
   int workHystVal;
-  bool workInvert;
+  int kickoutEnabled;
   bool kickoutState;
-  char kickoutStateColor[8];
+  int kickoutStateHist;
   char kickoutModeStr[30];
 };
 void glue_get_inputs(struct inputs *);
