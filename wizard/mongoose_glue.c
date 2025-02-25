@@ -91,7 +91,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false, 3, "1d 5h 23m 15s", 12};
+static struct comms s_comms = {"60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**"};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }

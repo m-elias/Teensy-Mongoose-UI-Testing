@@ -15,7 +15,7 @@ static struct inputs s_inputs;
 static struct misc s_misc;
 
 void glue_init(void) {
-  s_comms.esp32Detected = false;
+  s_comms.esp32Detected = 0;
   MG_DEBUG(("Custom init done"));
 }
 
@@ -54,7 +54,7 @@ void glue_websocket_on_timer(struct mg_connection *c) {
     else if (s_inputs.kickoutModeStr[0] == '4') ko_help_selected = ko_help_4;
     else if (s_inputs.kickoutModeStr[0] == '5') ko_help_selected = ko_help_5;
 
-    MG_INFO((s_inputs.kickoutModeStr));
+    //MG_INFO((s_inputs.kickoutModeStr));
     mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
     oldKickoutMode = s_inputs.kickoutModeStr[0];
   }
@@ -134,7 +134,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false, 3, "1d 5h 23m 15s", 12};
+static struct comms s_comms = {"60ms - F9P", false, 3, "1d 5h 23m 15s", 12, "**SSID**", "**PW**"};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }

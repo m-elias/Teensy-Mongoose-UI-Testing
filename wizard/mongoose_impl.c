@@ -120,6 +120,8 @@ struct attribute s_comms_attributes[] = {
   {"esp32Detected", "int", NULL, offsetof(struct comms, esp32Detected), 0, false},
   {"esp32Runtime", "string", NULL, offsetof(struct comms, esp32Runtime), 20, false},
   {"esp32NumClients", "int", NULL, offsetof(struct comms, esp32NumClients), 0, false},
+  {"esp32SSID", "string", NULL, offsetof(struct comms, esp32SSID), 24, false},
+  {"esp32PW", "string", NULL, offsetof(struct comms, esp32PW), 24, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_inputs_attributes[] = {

@@ -88,6 +88,8 @@ struct comms {
   int esp32Detected;
   char esp32Runtime[20];
   int esp32NumClients;
+  char esp32SSID[24];
+  char esp32PW[24];
 };
 void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);

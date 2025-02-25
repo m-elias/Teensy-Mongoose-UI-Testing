@@ -137,6 +137,32 @@ void loop() {
           comms_vars.esp32NumClients = esp32NumClients;
           glue_set_comms(&comms_vars);
           esp32ElapsedUpdateTime = 0;
+        }
+        
+        else if (incomingBytes[2] == 91 && incomingBytes[3] == 91) { // this is ESP32 WiFi Creds PGN
+          //Serial.println("WiFi Creds PGN");
+          struct comms comms_vars;
+          glue_get_comms(&comms_vars);
+
+          char str[24];
+          memset(str,'\0', sizeof(str));  //init to all 0, might not be necessary
+          for (uint8_t i = 0; i < 24 && incomingBytes[i+5] != 0; i++) {
+            str[i] = incomingBytes[i+5];  // only copy non 0 chars, 0 denotes end of char strings
+          }
+          //Serial.println(str);
+          memcpy(comms_vars.esp32SSID, str, 24);    // copy to UI string
+
+          memset(str,'\0', sizeof(str));  // zero out and repeat for password
+          for (uint8_t i = 0; i < 24 && incomingBytes[i+5+24] != 0; i++) {
+            str[i] = incomingBytes[i+5+24];
+          }
+          if (str[0] == 0) memcpy(str, "**blank**\0", 10);  // detect blank/empty password and indicate accordingly
+          //Serial.println(str);
+          memcpy(comms_vars.esp32PW, str, 24);
+
+          glue_set_comms(&comms_vars);
+
+
         } else {
 
           // Modules--Wifi:9999-->ESP32--serial-->Teensy--ethernet:9999-->AgIO
@@ -152,6 +178,10 @@ void loop() {
         }
       } else {
         Serial.print("\r\n\nCR/LF detected but [0]/[1] bytes != 128/129\r\n");
+        for (byte i = 0; i < incomingIndex; i++) {
+          Serial.print(incomingBytes[i]);
+          Serial.print(" ");
+        }
       }
       incomingIndex = 0;
     }
@@ -169,7 +199,7 @@ void loop() {
     if (esp32ElapsedUpdateTime > 15000) {
       struct comms comms_vars;
       glue_get_comms(&comms_vars);
-      comms_vars.esp32Detected = 2;
+      if (comms_vars.esp32Detected == 1) comms_vars.esp32Detected = 2;
       glue_set_comms(&comms_vars);
     }
   }

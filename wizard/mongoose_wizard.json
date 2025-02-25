@@ -51,8 +51,10 @@
         "gpsSync": {"type": "string", "size": 15, "value": "60ms - F9P"}, 
         "gpsPass": {"type": "bool", "value": false}, 
         "esp32Detected": {"type": "int", "value": 3}, 
-        "esp32Runtime": {"type": "string", "value": "1d 5h 23m 15s", "size": 20}, 
-        "esp32NumClients": {"type": "int", "value": 12}
+        "esp32Runtime": {"type": "string", "value": "0d 0h 0m 0s", "size": 20}, 
+        "esp32NumClients": {"type": "int", "value": 12}, 
+        "esp32SSID": {"type": "string", "value": "**SSID**", "size": 24}, 
+        "esp32PW": {"type": "string", "value": "**PW**", "size": 24}
       }
     }, 
     "inputs": {
@@ -171,7 +173,7 @@
               {"type": "container", "classes": "panel", "layout": [
                   {"type": "text", "classes": "title", "format": "ESP32 WiFi Bridge"},
                   {"classes": "form-control", "layout": [
-                      {"format": "<a href=\"https://www.google.com/search?q=buy+xiao+esp32c3+or+esp32s3\" target=\"_blank\">Xiao ESP32</a> not detected"}
+                      {"format": "Xiao ESP32 <a href=\"https://www.seeedstudio.com/Seeed-XIAO-ESP32C3-p-5431.html\" target=\"_blank\">C3</a> or <a href=\"https://www.seeedstudio.com/XIAO-ESP32S3-p-5627.html\" target=\"_blank\">S3</a> not detected"}
                     ], "css": "height:1.75rem;", "conditions": [
                       {"expr": "comms.esp32Detected > 0 && comms.esp32Detected < 3", "classes": "", "css": "", "attrs": {"css": "display:none;"}}
                     ]},
@@ -180,16 +182,24 @@
                     ], "css": "height:1.75rem;", "conditions": [
                       {"expr": "comms.esp32Detected < 2", "classes": "", "css": "", "attrs": {"css": "display:none;"}}
                     ]},
-                  {"classes": "form-control", "layout": [
-                      {"format": "Runtime:"},
-                      {"format": "${comms.esp32Runtime}"}
-                    ], "css": "height:1.75rem;", "conditions": [
-                      {"expr": "comms.esp32Detected < 1", "classes": "", "css": "", "attrs": {"css": "display:none;"}}
-                    ]},
-                  {"classes": "form-control", "layout": [
-                      {"format": "Num WiFi Clients:"},
-                      {"format": "${comms.esp32NumClients}"}
-                    ], "css": "height:1.75rem;", "conditions": [
+                  {"classes": "container", "css": "gap:0.5rem; flex-wrap:wrap;", "layout": [
+                      {"classes": "form-control", "layout": [
+                          {"format": "Runtime:"},
+                          {"format": "${comms.esp32Runtime}"}
+                        ], "css": "height:1.75rem;"},
+                      {"classes": "form-control", "layout": [
+                          {"format": "WiFi Clients:"},
+                          {"format": "${comms.esp32NumClients}"}
+                        ], "css": "height:1.75rem;"},
+                      {"classes": "form-control", "layout": [
+                          {"format": "SSID:"},
+                          {"format": "${comms.esp32SSID}"}
+                        ], "css": "height:1.75rem;"},
+                      {"classes": "form-control", "layout": [
+                          {"format": "PW:"},
+                          {"format": "${comms.esp32PW}"}
+                        ], "css": "height:1.75rem;"}
+                    ], "conditions": [
                       {"expr": "comms.esp32Detected < 1", "classes": "", "css": "", "attrs": {"css": "display:none;"}}
                     ]}
                 ]}
