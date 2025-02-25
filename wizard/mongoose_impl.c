@@ -117,6 +117,9 @@ struct apihandler_array {
 struct attribute s_comms_attributes[] = {
   {"gpsSync", "string", NULL, offsetof(struct comms, gpsSync), 15, false},
   {"gpsPass", "bool", NULL, offsetof(struct comms, gpsPass), 0, false},
+  {"esp32Detected", "int", NULL, offsetof(struct comms, esp32Detected), 0, false},
+  {"esp32Runtime", "string", NULL, offsetof(struct comms, esp32Runtime), 20, false},
+  {"esp32NumClients", "int", NULL, offsetof(struct comms, esp32NumClients), 0, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_inputs_attributes[] = {

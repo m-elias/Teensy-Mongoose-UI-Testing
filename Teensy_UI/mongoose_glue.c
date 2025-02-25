@@ -15,6 +15,7 @@ static struct inputs s_inputs;
 static struct misc s_misc;
 
 void glue_init(void) {
+  s_comms.esp32Detected = false;
   MG_DEBUG(("Custom init done"));
 }
 
@@ -133,7 +134,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false};
+static struct comms s_comms = {"60ms - F9P", false, 3, "1d 5h 23m 15s", 12};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -149,7 +150,7 @@ void glue_set_inputs(struct inputs *data) {
   s_inputs = *data; // Sync with your device
 }
 
-static struct misc s_misc = {75, false, "AiO GUI v5.old"};
+static struct misc s_misc = {75, false, "AiO NG v6"};
 void glue_get_misc(struct misc *data) {
   *data = s_misc;  // Sync with your device
 }

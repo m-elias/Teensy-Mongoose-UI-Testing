@@ -85,6 +85,9 @@ bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
 struct comms {
   char gpsSync[15];
   bool gpsPass;
+  int esp32Detected;
+  char esp32Runtime[20];
+  int esp32NumClients;
 };
 void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);

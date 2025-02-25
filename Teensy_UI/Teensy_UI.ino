@@ -3,7 +3,7 @@
 #include <Streaming.h>
 #include "mongoose_init.h"
 
-const char* inoVersion = "AiO v5.0d Web GUI - " __DATE__ " " __TIME__;
+const char* inoVersion = "AiO-NG-v6 Web GUI - " __DATE__ " " __TIME__;
 
 // globally available, working settings struct
 //  - read/write from/to this struct
@@ -20,6 +20,12 @@ const uint16_t eeAddr = 0;
 #include "LEDS.h"
 LEDS LEDs = LEDS(1000, 255, 64, 127);   // 1000ms RGB update, 255/64/127 RGB brightness balance levels for v5.0a
 
+#define SerialESP32 Serial2
+const int32_t baudESP32 = 460800;
+uint8_t ESP32rxbuffer[256];   // don't know what size is needed
+uint8_t ESP32txbuffer[256];   // don't know what size is needed
+uint32_t esp32Runtime;
+elapsedMillis esp32ElapsedUpdateTime;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -64,13 +70,94 @@ void setup() {
   LEDs.init();
   LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::PWR_ON);
   LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::ETH_READY);
-}
 
-elapsedMillis kickoutTransitionTimer = 0;
+  SerialESP32.begin(baudESP32);
+  SerialESP32.addMemoryForRead(ESP32rxbuffer, sizeof(ESP32rxbuffer));
+  SerialESP32.addMemoryForWrite(ESP32txbuffer, sizeof(ESP32txbuffer));
+
+}
 
 void loop() {
   mongoose_poll();
   LEDs.updateLoop();
+
+
+  // check for ESP32 serial data
+  if (SerialESP32.available())
+  {
+    static uint8_t incomingBytes[50];
+    static uint8_t incomingIndex;
+    incomingBytes[incomingIndex] = SerialESP32.read();
+    incomingIndex++;
+    //Serial.print("\r\nindex: "); Serial.print(incomingIndex);
+    //Serial.print(" ");
+    //for (byte i = 0; i < incomingIndex; i++) {
+      //Serial.print(incomingBytes[i]);
+      //Serial.print(" ");
+    //}
+
+    if (incomingBytes[incomingIndex - 2] == 13 && incomingBytes[incomingIndex - 1] == 10)
+    {
+      if (incomingBytes[0] == 128 && incomingBytes[1] == 129)
+      {
+        if (incomingBytes[2] == 90 && incomingBytes[3] == 90) { // this is helloFromESP32 PGN
+          union {   // both variables in the union share the same memory space
+            byte array[4];
+            uint32_t millis;
+          } runtime;
+          runtime.array[0] = incomingBytes[5];
+          runtime.array[1] = incomingBytes[6];
+          runtime.array[2] = incomingBytes[7];
+          runtime.array[3] = incomingBytes[8];
+          esp32Runtime = runtime.millis;
+          uint8_t esp32NumClients = incomingBytes[9];
+
+          struct comms comms_vars;
+          glue_get_comms(&comms_vars);
+          comms_vars.esp32Detected = 1;
+
+          esp32Runtime /= 1000;
+          
+          uint8_t days = esp32Runtime / 86400;
+          esp32Runtime %= 86400;
+          
+          uint8_t hrs = esp32Runtime / 3600;
+          esp32Runtime %= 3600;
+          
+          uint8_t mins = esp32Runtime / 60;
+          esp32Runtime %= 60;
+          
+          uint8_t secs = esp32Runtime;
+          
+          char esp32RuntimeStr[20];
+          sprintf(esp32RuntimeStr, "%id %ih %im %is", days, hrs, mins, secs);
+          //Serial.println(esp32RuntimeStr);
+          strcpy(comms_vars.esp32Runtime, esp32RuntimeStr);
+          
+          comms_vars.esp32NumClients = esp32NumClients;
+          glue_set_comms(&comms_vars);
+          esp32ElapsedUpdateTime = 0;
+        } else {
+
+          // Modules--Wifi:9999-->ESP32--serial-->Teensy--ethernet:9999-->AgIO
+          //UDP.SendUdpByte(incomingBytes, incomingIndex - 2, UDP.broadcastIP, UDP.portAgIO_9999);
+
+          //pass data to USB for debug
+          //Serial.print("\r\nE32-s->T41-e:9999->AgIO ");
+          //for (byte i = 0; i < incomingIndex - 2; i++) {
+            //Serial.print(incomingBytes[i]);
+            //Serial.print(" ");
+          //}
+          //Serial.print((String)" (" + SerialESP32->available() + ")");
+        }
+      } else {
+        Serial.print("\r\n\nCR/LF detected but [0]/[1] bytes != 128/129\r\n");
+      }
+      incomingIndex = 0;
+    }
+  }
+
+
 
   static elapsedMillis miscTimer = 0;
   if (miscTimer > 499) { // 2hz
@@ -78,6 +165,13 @@ void loop() {
     glue_get_misc(&misc_vars); // pull-sync from UI
 
     LEDs.setBrightness(int(float(misc_vars.rgbBrightness) / 2.55));
+
+    if (esp32ElapsedUpdateTime > 15000) {
+      struct comms comms_vars;
+      glue_get_comms(&comms_vars);
+      comms_vars.esp32Detected = 2;
+      glue_set_comms(&comms_vars);
+    }
   }
 
 
@@ -117,6 +211,7 @@ void loop() {
     
 
     // **** read digital KICKOUT input ****
+    static elapsedMillis kickoutTransitionTimer = 0;
     if (input_vars.kickoutState == digitalRead(KICKOUT_D_PIN)){ // detect change
       kickoutTransitionTimer = 0;
       //memcpy(input_vars.kickoutStateColor, "#FFA500", 7); // set temporary orange color
