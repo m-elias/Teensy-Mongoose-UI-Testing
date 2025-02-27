@@ -100,7 +100,14 @@ void loop() {
     {
       if (incomingBytes[0] == 128 && incomingBytes[1] == 129)
       {
-        if (incomingBytes[2] == 90 && incomingBytes[3] == 90) { // this is helloFromESP32 PGN
+        /*for (byte i = 0; i < incomingIndex; i++) {
+          Serial.print(incomingBytes[i]);
+          Serial.print(" ");
+        }
+        Serial.println();*/
+
+        // Process the special ESP32->Teensy PGNs
+        if (incomingBytes[2] == 90 && incomingBytes[3] == 90) { // helloFromESP32 PGN
           union {   // both variables in the union share the same memory space
             byte array[4];
             uint32_t millis;
@@ -111,6 +118,8 @@ void loop() {
           runtime.array[3] = incomingBytes[8];
           esp32Runtime = runtime.millis;
           uint8_t esp32NumClients = incomingBytes[9];
+          uint16_t esp32m2mPort = (incomingBytes[11] << 8) + incomingBytes[10];
+          //Serial.printf("M2M Port: %i\r\n", esp32m2mPort);
 
           struct comms comms_vars;
           glue_get_comms(&comms_vars);
@@ -131,7 +140,7 @@ void loop() {
           
           char esp32RuntimeStr[20];
           sprintf(esp32RuntimeStr, "%id %ih %im %is", days, hrs, mins, secs);
-          //Serial.println(esp32RuntimeStr);
+          //Serial.printf("ESP32 Runtime: %s\r\n", esp32RuntimeStr);
           strcpy(comms_vars.esp32Runtime, esp32RuntimeStr);
           
           comms_vars.esp32NumClients = esp32NumClients;
@@ -139,7 +148,7 @@ void loop() {
           esp32ElapsedUpdateTime = 0;
         }
         
-        else if (incomingBytes[2] == 91 && incomingBytes[3] == 91) { // this is ESP32 WiFi Creds PGN
+        else if (incomingBytes[2] == 91 && incomingBytes[3] == 91) { // ESP32 WiFi Creds PGN
           //Serial.println("WiFi Creds PGN");
           struct comms comms_vars;
           glue_get_comms(&comms_vars);
@@ -163,6 +172,7 @@ void loop() {
           glue_set_comms(&comms_vars);
 
 
+        // all other properly formed PGNs forwarded to AgIO
         } else {
 
           // Modules--Wifi:9999-->ESP32--serial-->Teensy--ethernet:9999-->AgIO
@@ -176,12 +186,15 @@ void loop() {
           //}
           //Serial.print((String)" (" + SerialESP32->available() + ")");
         }
+
+      // unformed/corrupt PGN detected
       } else {
         Serial.print("\r\n\nCR/LF detected but [0]/[1] bytes != 128/129\r\n");
         for (byte i = 0; i < incomingIndex; i++) {
           Serial.print(incomingBytes[i]);
           Serial.print(" ");
         }
+        Serial.println();
       }
       incomingIndex = 0;
     }
