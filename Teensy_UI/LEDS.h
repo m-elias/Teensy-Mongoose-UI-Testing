@@ -126,9 +126,9 @@ public:
     Wire.beginTransmission(0x70);
     Serial.print("\r\n- RGB PCA9685 ");
     if (Wire.endTransmission() == 0)
-      Serial.print("found");
+      Serial.println("found");
     else
-      Serial.print("*NOT found!*");
+      Serial.println("*NOT found!*");
 
     Wire.setClock(1000000);
     ledDriver.setPWMFreq(120); // 120 hz should be enough to not notice, but increase if flickering
