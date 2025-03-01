@@ -12,6 +12,7 @@ void initializeInputs(){
   pinMode(STEER_PIN, INPUT_PULLUP);
   pinMode(KICKOUT_D_PIN, INPUT_PULLUP);
 
+  struct inputs input_vars;
   glue_get_inputs(&input_vars); // pull-sync from UI
 
   if (analogRead(WAS_A_PIN) < 20) { // means no WAS connected, also checked in loop() inputsTimer
@@ -42,6 +43,7 @@ void checkInputsTimer()
   static elapsedMillis inputsTimer = 0;
   if (inputsTimer > 99) { // 10hz
     inputsTimer -= 100;   // try to maintain steady 10hz
+    struct inputs input_vars;
     glue_get_inputs(&input_vars); // pull-sync from UI
 
     // **** read analog WORK input ****

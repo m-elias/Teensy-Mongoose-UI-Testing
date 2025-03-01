@@ -29,8 +29,6 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   }
 }
 
-
-// reboot
 static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
   return s_action_timeout_reboot > mg_now(); // Return true if reboot is in progress
@@ -39,7 +37,6 @@ void glue_start_reboot(void) {
   s_action_timeout_reboot = mg_now() + 1000; // Start reboot, finish after 1 second
 }
 
-// dec_work_thres
 static uint64_t s_action_timeout_dec_work_thres;  // Time when dec_work_thres ends
 bool glue_check_dec_work_thres(void) {
   return s_action_timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
@@ -48,16 +45,6 @@ void glue_start_dec_work_thres(void) {
   s_action_timeout_dec_work_thres = mg_now() + 1000; // Start dec_work_thres, finish after 1 second
 }
 
-// set_work_thres
-static uint64_t s_action_timeout_set_work_thres;  // Time when set_work_thres ends
-bool glue_check_set_work_thres(void) {
-  return s_action_timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
-}
-void glue_start_set_work_thres(void) {
-  s_action_timeout_set_work_thres = mg_now() + 1000; // Start set_work_thres, finish after 1 second
-}
-
-// inc_work_thres
 static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres ends
 bool glue_check_inc_work_thres(void) {
   return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
@@ -66,7 +53,14 @@ void glue_start_inc_work_thres(void) {
   s_action_timeout_inc_work_thres = mg_now() + 1000; // Start inc_work_thres, finish after 1 second
 }
 
-// set_work_digital
+static uint64_t s_action_timeout_set_work_thres;  // Time when set_work_thres ends
+bool glue_check_set_work_thres(void) {
+  return s_action_timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
+}
+void glue_start_set_work_thres(void) {
+  s_action_timeout_set_work_thres = mg_now() + 1000; // Start set_work_thres, finish after 1 second
+}
+
 static uint64_t s_action_timeout_set_work_digital;  // Time when set_work_digital ends
 bool glue_check_set_work_digital(void) {
   return s_action_timeout_set_work_digital > mg_now(); // Return true if set_work_digital is in progress
@@ -75,7 +69,6 @@ void glue_start_set_work_digital(void) {
   s_action_timeout_set_work_digital = mg_now() + 1000; // Start set_work_digital, finish after 1 second
 }
 
-// firmware_update
 void  *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
   bool ok = mg_ota_begin(total_size);
   MG_DEBUG(("%s size %lu, ok: %d", file_name, total_size, ok));
@@ -91,7 +84,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**"};
+static struct comms s_comms = {"60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -107,6 +100,26 @@ void glue_set_inputs(struct inputs *data) {
   s_inputs = *data; // Sync with your device
 }
 
+void glue_reply_inputsKickoutModeList(struct mg_connection *c, struct mg_http_message *hm) {
+  const char *headers = "Cache-Control: no-cache\r\n" "Content-Type: application/json\r\n";
+  const char *value = "[\"1 - AOG Setting (default)\",\"2 - Quadrature Encoder\",\"3 - JD Variable Duty Encoder\",\"4 - WAS-PWM Ratio\",\"5 - Encoder Speed\"]";
+  (void) hm;
+  mg_http_reply(c, 200, headers, "%s\n", value);
+}
+static struct outputs s_outputs = {"shoutld change"};
+void glue_get_outputs(struct outputs *data) {
+  *data = s_outputs;  // Sync with your device
+}
+void glue_set_outputs(struct outputs *data) {
+  s_outputs = *data; // Sync with your device
+}
+
+void glue_reply_outputsPwmFreqList(struct mg_connection *c, struct mg_http_message *hm) {
+  const char *headers = "Cache-Control: no-cache\r\n" "Content-Type: application/json\r\n";
+  const char *value = "[\"122 hz - Valve\",\"490 hz\",\"3921 hz\"]";
+  (void) hm;
+  mg_http_reply(c, 200, headers, "%s\n", value);
+}
 static struct misc s_misc = {75, false, "AiO NG v6"};
 void glue_get_misc(struct misc *data) {
   *data = s_misc;  // Sync with your device

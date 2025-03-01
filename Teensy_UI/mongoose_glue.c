@@ -9,13 +9,18 @@
 #include "mongoose_glue.h"
 #include "Arduino.h"
 
-// added these forward declarations so that btn functions can access s_*_settings
+// Dropdown item lists
+const char* pwmFreqList = "[\"122 hz - Baraki Valve\",\"490 hz\",\"1000 hz - Danfoss\",\"3921 hz\",\"9210 hz\",\"39210 hz - Motor\"]";
+const char* kickoutModeList = "[\"1 - AOG Setting (default)\",\"2 - Quadrature Encoder\",\"3 - JD Variable Duty Encoder\",\"4 - WAS-PWM Ratio\",\"5 - Encoder Speed\"]";
+
+// added these forward declarations so that btn functions can access API endpoint structs
 static struct comms s_comms;
 static struct inputs s_inputs;
+static struct outputs s_outputs;
 static struct misc s_misc;
 
 void glue_init(void) {
-  s_comms.esp32Detected = 0;
+  s_comms.esp32Detected = 0;    // set as "Undetected" at boot, ESP32 UART processing code will set as "Detected" when appropriate
   MG_DEBUG(("Custom init done"));
 }
 
@@ -134,7 +139,7 @@ bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false, 3, "1d 5h 23m 15s", 12, "**SSID**", "**PW**"};
+static struct comms s_comms = {"60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -150,6 +155,26 @@ void glue_set_inputs(struct inputs *data) {
   s_inputs = *data; // Sync with your device
 }
 
+void glue_reply_inputsKickoutModeList(struct mg_connection *c, struct mg_http_message *hm) {
+  const char *headers = "Cache-Control: no-cache\r\n" "Content-Type: application/json\r\n";
+  const char *value = kickoutModeList;
+  (void) hm;
+  mg_http_reply(c, 200, headers, "%s\n", value);
+}
+static struct outputs s_outputs = {"shoutld change"};
+void glue_get_outputs(struct outputs *data) {
+  *data = s_outputs;  // Sync with your device
+}
+void glue_set_outputs(struct outputs *data) {
+  s_outputs = *data; // Sync with your device
+}
+
+void glue_reply_outputsPwmFreqList(struct mg_connection *c, struct mg_http_message *hm) {
+  const char *headers = "Cache-Control: no-cache\r\n" "Content-Type: application/json\r\n";
+  const char *value = pwmFreqList;
+  (void) hm;
+  mg_http_reply(c, 200, headers, "%s\n", value);
+}
 static struct misc s_misc = {75, false, "AiO NG v6"};
 void glue_get_misc(struct misc *data) {
   *data = s_misc;  // Sync with your device

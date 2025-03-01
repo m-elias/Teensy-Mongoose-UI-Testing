@@ -1,16 +1,19 @@
+/*
+  
+*/
+
 #include "mongoose_glue.h"
 #include <EEPROM.h>
 #include <Streaming.h>
 #include "mongoose_init.h"
 
-const char* inoVersion = "AiO-NG-v6 Web GUI - " __DATE__ " " __TIME__;
+const char* inoVersion = "AiO-NG-v6 - " __DATE__ " " __TIME__;
 
 // globally available, working settings struct
 //  - read/write from/to this struct
 //  - call glue_get_inputs(&input_vars); before making changes
 //  - call glue_set_inputs(&input_vars); after making changes
-struct inputs input_vars;
-struct misc misc_vars;
+
 
 const uint16_t EE_IDENT = 2417; // change to force EE update
 const uint16_t eeAddr = 0;
@@ -43,6 +46,7 @@ void setup() {
   uint16_t varSize = 0;
   EEPROM.get(eeAddr + 2, varSize);      // get size of struct, if Mongoose wizard has changed struct, reset to new defaults
 
+  struct inputs input_vars;
   // if EE Ident OR the struct size does not match then overwrite with new defaults
   if (eeIdentRead != EE_IDENT || varSize != sizeof(input_vars)) {
     glue_get_inputs(&input_vars);
@@ -56,6 +60,7 @@ void setup() {
     glue_set_inputs(&input_vars);
   }
 
+  struct misc misc_vars;
   glue_get_misc(&misc_vars);
   strcpy(misc_vars.fversion, inoVersion);
   glue_set_misc(&misc_vars);

@@ -71,17 +71,23 @@ void glue_websocket_on_timer(struct mg_connection *c);
 
 bool glue_check_reboot(void);
 void glue_start_reboot(void);
+
 bool glue_check_dec_work_thres(void);
 void glue_start_dec_work_thres(void);
-bool glue_check_set_work_thres(void);
-void glue_start_set_work_thres(void);
+
 bool glue_check_inc_work_thres(void);
 void glue_start_inc_work_thres(void);
+
+bool glue_check_set_work_thres(void);
+void glue_start_set_work_thres(void);
+
 bool glue_check_set_work_digital(void);
 void glue_start_set_work_digital(void);
+
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);
 bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
+
 struct comms {
   char gpsSync[15];
   bool gpsPass;
@@ -90,6 +96,7 @@ struct comms {
   int esp32NumClients;
   char esp32SSID[24];
   char esp32PW[24];
+  bool esp32BridgeEnabled;
 };
 void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);
@@ -112,6 +119,14 @@ struct inputs {
 void glue_get_inputs(struct inputs *);
 void glue_set_inputs(struct inputs *);
 
+void glue_reply_inputsKickoutModeList(struct mg_connection *, struct mg_http_message *);
+struct outputs {
+  char drv8701PwmFreq[20];
+};
+void glue_get_outputs(struct outputs *);
+void glue_set_outputs(struct outputs *);
+
+void glue_reply_outputsPwmFreqList(struct mg_connection *, struct mg_http_message *);
 struct misc {
   int rgbBrightness;
   bool update;

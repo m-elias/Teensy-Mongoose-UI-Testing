@@ -92,10 +92,10 @@ struct apihandler_action {
   void (*starter)(void);  // Starter function for actions
 };
 
-struct apihandler_graph {
-  struct apihandler common;
-  size_t (*grapher)(uint32_t, uint32_t, uint32_t *, double *, size_t);
-};
+// struct apihandler_graph {
+//   struct apihandler common;
+//   size_t (*grapher)(uint32_t, uint32_t, uint32_t *, double *, size_t);
+// };
 
 struct apihandler_data {
   struct apihandler common;
@@ -122,6 +122,7 @@ struct attribute s_comms_attributes[] = {
   {"esp32NumClients", "int", NULL, offsetof(struct comms, esp32NumClients), 0, false},
   {"esp32SSID", "string", NULL, offsetof(struct comms, esp32SSID), 24, false},
   {"esp32PW", "string", NULL, offsetof(struct comms, esp32PW), 24, false},
+  {"esp32BridgeEnabled", "bool", NULL, offsetof(struct comms, esp32BridgeEnabled), 0, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_inputs_attributes[] = {
@@ -140,6 +141,10 @@ struct attribute s_inputs_attributes[] = {
   {"kickoutModeStr", "string", NULL, offsetof(struct inputs, kickoutModeStr), 30, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
+struct attribute s_outputs_attributes[] = {
+  {"drv8701PwmFreq", "string", NULL, offsetof(struct outputs, drv8701PwmFreq), 20, false},
+  {NULL, NULL, NULL, 0, 0, false}
+};
 struct attribute s_misc_attributes[] = {
   {"rgbBrightness", "int", NULL, offsetof(struct misc, rgbBrightness), 0, false},
   {"update", "bool", NULL, offsetof(struct misc, update), 0, false},
@@ -149,23 +154,29 @@ struct attribute s_misc_attributes[] = {
 
 struct apihandler_action s_apihandler_reboot = {{"reboot", "action", false, 3, 7, 0UL}, glue_check_reboot, glue_start_reboot};
 struct apihandler_action s_apihandler_dec_work_thres = {{"dec_work_thres", "action", false, 3, 7, 0UL}, glue_check_dec_work_thres, glue_start_dec_work_thres};
-struct apihandler_action s_apihandler_set_work_thres = {{"set_work_thres", "action", false, 3, 7, 0UL}, glue_check_set_work_thres, glue_start_set_work_thres};
 struct apihandler_action s_apihandler_inc_work_thres = {{"inc_work_thres", "action", false, 3, 7, 0UL}, glue_check_inc_work_thres, glue_start_inc_work_thres};
+struct apihandler_action s_apihandler_set_work_thres = {{"set_work_thres", "action", false, 3, 7, 0UL}, glue_check_set_work_thres, glue_start_set_work_thres};
 struct apihandler_action s_apihandler_set_work_digital = {{"set_work_digital", "action", false, 3, 7, 0UL}, glue_check_set_work_digital, glue_start_set_work_digital};
 struct apihandler_ota s_apihandler_firmware_update = {{"firmware_update", "ota", false, 3, 7, 0UL}, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update};
 struct apihandler_data s_apihandler_comms = {{"comms", "data", false, 3, 7, 0UL}, s_comms_attributes, sizeof(struct comms), (void (*)(void *)) glue_get_comms, (void (*)(void *)) glue_set_comms};
 struct apihandler_data s_apihandler_inputs = {{"inputs", "data", false, 3, 7, 0UL}, s_inputs_attributes, sizeof(struct inputs), (void (*)(void *)) glue_get_inputs, (void (*)(void *)) glue_set_inputs};
+struct apihandler_custom s_apihandler_inputsKickoutModeList = {{"inputsKickoutModeList", "custom", false, 0, 0, 0UL}, glue_reply_inputsKickoutModeList};
+struct apihandler_data s_apihandler_outputs = {{"outputs", "data", false, 3, 7, 0UL}, s_outputs_attributes, sizeof(struct outputs), (void (*)(void *)) glue_get_outputs, (void (*)(void *)) glue_set_outputs};
+struct apihandler_custom s_apihandler_outputsPwmFreqList = {{"outputsPwmFreqList", "custom", false, 0, 0, 0UL}, glue_reply_outputsPwmFreqList};
 struct apihandler_data s_apihandler_misc = {{"misc", "data", false, 3, 7, 0UL}, s_misc_attributes, sizeof(struct misc), (void (*)(void *)) glue_get_misc, (void (*)(void *)) glue_set_misc};
 
 static struct apihandler *s_apihandlers[] = {
   (struct apihandler *) &s_apihandler_reboot,
   (struct apihandler *) &s_apihandler_dec_work_thres,
-  (struct apihandler *) &s_apihandler_set_work_thres,
   (struct apihandler *) &s_apihandler_inc_work_thres,
+  (struct apihandler *) &s_apihandler_set_work_thres,
   (struct apihandler *) &s_apihandler_set_work_digital,
   (struct apihandler *) &s_apihandler_firmware_update,
   (struct apihandler *) &s_apihandler_comms,
   (struct apihandler *) &s_apihandler_inputs,
+  (struct apihandler *) &s_apihandler_inputsKickoutModeList,
+  (struct apihandler *) &s_apihandler_outputs,
+  (struct apihandler *) &s_apihandler_outputsPwmFreqList,
   (struct apihandler *) &s_apihandler_misc
 };
 
@@ -496,6 +507,7 @@ size_t print_timeseries(void (*out)(char, void *), void *ptr, va_list *ap) {
   return len;
 }
 
+#if 0
 static void handle_graph(struct mg_connection *c, struct mg_http_message *hm,
                          struct apihandler_graph *h) {
   long from = mg_json_get_long(hm->body, "$.from", 0);
@@ -507,6 +519,7 @@ static void handle_graph(struct mg_connection *c, struct mg_http_message *hm,
   mg_http_reply(c, 200, JSON_HEADERS, "[%M]\n", print_timeseries, timestamps,
                 values, count);
 }
+#endif
 
 static void handle_api_call(struct mg_connection *c, struct mg_http_message *hm,
                             struct apihandler *h) {
@@ -517,8 +530,8 @@ static void handle_api_call(struct mg_connection *c, struct mg_http_message *hm,
   } else if (strcmp(h->type, "action") == 0) {
     struct apihandler_action *ha = (struct apihandler_action *) h;
     handle_action(c, hm, ha->checker, ha->starter);
-  } else if (strcmp(h->type, "graph") == 0) {
-    handle_graph(c, hm, (struct apihandler_graph *) h);
+    //  } else if (strcmp(h->type, "graph") == 0) {
+    //    handle_graph(c, hm, (struct apihandler_graph *) h);
   } else if (strcmp(h->type, "custom") == 0) {
     ((struct apihandler_custom *) h)->reply(c, hm);
   } else {
