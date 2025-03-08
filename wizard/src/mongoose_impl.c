@@ -43,8 +43,6 @@
 struct mg_mgr g_mgr;  // Mongoose event manager
 
 #if WIZARD_ENABLE_HTTP || WIZARD_ENABLE_HTTPS
-
-#if WIZARD_ENABLE_HTTP_UI
 // Every time device state changes, this counter increments.
 // Used by the heartbeat endpoint, to signal the UI when to refresh
 static unsigned long s_device_change_version = 0;
@@ -308,7 +306,7 @@ static void upload_handler(struct mg_connection *c, int ev, void *ev_data) {
   // Catch uploaded file data for both MG_EV_READ and MG_EV_HTTP_HDRS
   if (us->marker == 'U' && ev == MG_EV_READ && us->expected > 0 &&
       c->recv.len > 0) {
-    size_t alignment = 256;  // Maximum flash write granularity (iMXRT, Pico)
+    size_t alignment = 512;  // Maximum flash write granularity (iMXRT, Pico)
     size_t aligned = (us->received + c->recv.len < us->expected)
                          ? aligned = MG_ROUND_DOWN(c->recv.len, alignment)
                          : c->recv.len;  // Last write can be unaligned
@@ -507,20 +505,6 @@ size_t print_timeseries(void (*out)(char, void *), void *ptr, va_list *ap) {
   return len;
 }
 
-#if 0
-static void handle_graph(struct mg_connection *c, struct mg_http_message *hm,
-                         struct apihandler_graph *h) {
-  long from = mg_json_get_long(hm->body, "$.from", 0);
-  long to = mg_json_get_long(hm->body, "$.to", 0);
-  uint32_t timestamps[20];
-  double values[sizeof(timestamps) / sizeof(timestamps[0])];
-  size_t count = h->grapher(from, to, timestamps, values,
-                            sizeof(timestamps) / sizeof(timestamps[0]));
-  mg_http_reply(c, 200, JSON_HEADERS, "[%M]\n", print_timeseries, timestamps,
-                values, count);
-}
-#endif
-
 static void handle_api_call(struct mg_connection *c, struct mg_http_message *hm,
                             struct apihandler *h) {
   if (strcmp(h->type, "object") == 0 || strcmp(h->type, "data") == 0) {
@@ -542,11 +526,9 @@ static void handle_api_call(struct mg_connection *c, struct mg_http_message *hm,
 void glue_update_state(void) {
   s_device_change_version++;
 }
-#endif  // WIZARD_ENABLE_HTTP_UI
 
 // Mongoose event handler function, gets called by the mg_mgr_poll()
 static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
-#if WIZARD_ENABLE_HTTP_UI
   // We're checking c->is_websocket cause WS connection use c->data
   if (c->is_websocket == 0) handle_uploads(c, ev, ev_data);
   if (ev == MG_EV_POLL && c->is_websocket == 0 && c->data[0] == 'A') {
@@ -556,11 +538,9 @@ static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
       mg_http_reply(c, 200, JSON_HEADERS, "true");
       memset(as, 0, sizeof(*as));
     }
-  } else
-#endif
-      if (ev == MG_EV_HTTP_MSG && c->is_websocket == 0 && c->data[0] != 'U') {
+  } else if (ev == MG_EV_HTTP_MSG && c->is_websocket == 0 && c->data[0] != 'U') {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-#if WIZARD_ENABLE_HTTP_UI
+#if WIZARD_ENABLE_HTTP || WIZARD_ENABLE_HTTPS
     struct apihandler *h = find_handler(hm);
 #if WIZARD_ENABLE_HTTP_UI_LOGIN
     struct user *u = authenticate(hm);
@@ -588,14 +568,18 @@ static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
     } else if (h != NULL) {
       handle_api_call(c, hm, h);
     } else
-#endif  // WIZARD_ENABLE_HTTP_UI
+#endif  // WIZARD_ENABLE_HTTP || WIZARD_ENABLE_HTTPS
     {
+#if WIZARD_ENABLE_HTTP_UI
       struct mg_http_serve_opts opts;
       memset(&opts, 0, sizeof(opts));
       opts.root_dir = "/web_root/";
       opts.fs = &mg_fs_packed;
       opts.extra_headers = NO_CACHE_HEADERS;
       mg_http_serve_dir(c, hm, &opts);
+#else
+      mg_http_reply(c, 200, "", ":)\n");
+#endif  // WIZARD_ENABLE_HTTP_UI
     }
     // Show this request
     MG_DEBUG(("%lu %.*s %.*s %lu -> %.*s", c->id, hm->method.len,

@@ -69,20 +69,20 @@ void glue_update_state(void);
 
 void glue_websocket_on_timer(struct mg_connection *c);
 
-bool glue_check_reboot(void);
-void glue_start_reboot(void);
+void glue_start_reboot(void);  // Start an action
+bool glue_check_reboot(void);  // Check if action is still in progress
 
-bool glue_check_dec_work_thres(void);
-void glue_start_dec_work_thres(void);
+void glue_start_dec_work_thres(void);  // Start an action
+bool glue_check_dec_work_thres(void);  // Check if action is still in progress
 
-bool glue_check_inc_work_thres(void);
-void glue_start_inc_work_thres(void);
+void glue_start_inc_work_thres(void);  // Start an action
+bool glue_check_inc_work_thres(void);  // Check if action is still in progress
 
-bool glue_check_set_work_thres(void);
-void glue_start_set_work_thres(void);
+void glue_start_set_work_thres(void);  // Start an action
+bool glue_check_set_work_thres(void);  // Check if action is still in progress
 
-bool glue_check_set_work_digital(void);
-void glue_start_set_work_digital(void);
+void glue_start_set_work_digital(void);  // Start an action
+bool glue_check_set_work_digital(void);  // Check if action is still in progress
 
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);
 bool glue_ota_end_firmware_update(void *context);

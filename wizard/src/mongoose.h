@@ -20,7 +20,7 @@
 #ifndef MONGOOSE_H
 #define MONGOOSE_H
 
-#define MG_VERSION "7.16"
+#define MG_VERSION "7.17"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1068,7 +1068,7 @@ struct mg_fs {
 };
 
 extern struct mg_fs mg_fs_posix;   // POSIX open/close/read/write/seek
-extern struct mg_fs mg_fs_packed;  // Packed FS, see examples/device-dashboard
+extern struct mg_fs mg_fs_packed;  // see tutorials/core/embedded-filesystem
 extern struct mg_fs mg_fs_fat;     // FAT FS
 
 // File descriptor
@@ -2687,9 +2687,10 @@ void mg_rpc_list(struct mg_rpc_req *r);
 #define MG_OTA_CH32V307 100 // WCH CH32V307
 #define MG_OTA_U2A 200      // Renesas U2A16, U2A8, U2A6
 #define MG_OTA_RT1020 300   // IMXRT1020
-#define MG_OTA_RT1060 301   // IMXRT1060
-#define MG_OTA_RT1064 302   // IMXRT1064
-#define MG_OTA_RT1170 303   // IMXRT1170
+#define MG_OTA_RT1050 301   // IMXRT1050
+#define MG_OTA_RT1060 302   // IMXRT1060
+#define MG_OTA_RT1064 303   // IMXRT1064
+#define MG_OTA_RT1170 304   // IMXRT1170
 #define MG_OTA_MCXN 310 	  // MCXN947
 #define MG_OTA_FLASH 900    // OTA via an internal flash
 #define MG_OTA_ESP32 910    // ESP32 OTA implementation
@@ -2804,6 +2805,7 @@ void mg_tcpip_arp_request(struct mg_tcpip_if *ifp, uint32_t ip, uint8_t *mac);
 
 extern struct mg_tcpip_driver mg_tcpip_driver_stm32f;
 extern struct mg_tcpip_driver mg_tcpip_driver_w5500;
+extern struct mg_tcpip_driver mg_tcpip_driver_w5100;
 extern struct mg_tcpip_driver mg_tcpip_driver_tm4c;
 extern struct mg_tcpip_driver mg_tcpip_driver_tms570;
 extern struct mg_tcpip_driver mg_tcpip_driver_stm32h;
@@ -2832,7 +2834,7 @@ struct mg_tcpip_spi {
 // timestamp in milliseconds since connection init time.
 //
 // Test (run in two separate terminals):
-//   make -C examples/http-server/ CFLAGS_EXTRA=-DMG_ENABLE_PROFILE=1
+//   make -C tutorials/http/http-server/ CFLAGS_EXTRA=-DMG_ENABLE_PROFILE=1
 //   curl localhost:8000
 // Output:
 //   1ea1f1e7 2 net.c:150:mg_close_conn      3 profile:                                                            

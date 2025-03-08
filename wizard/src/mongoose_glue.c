@@ -69,17 +69,16 @@ void glue_start_set_work_digital(void) {
   s_action_timeout_set_work_digital = mg_now() + 1000; // Start set_work_digital, finish after 1 second
 }
 
-void  *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
+void *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
   bool ok = mg_ota_begin(total_size);
   MG_DEBUG(("%s size %lu, ok: %d", file_name, total_size, ok));
   return ok ? (void *) 1 : NULL;
 }
-bool  glue_ota_end_firmware_update(void *context) {
-  bool ok = mg_ota_end();
-  MG_DEBUG(("ctx: %p, success: %d", context, ok));
-  return ok;
+bool glue_ota_end_firmware_update(void *context) {
+  mg_timer_add(&g_mgr, 500, 0, (void (*)(void *)) mg_ota_end, context);
+  return true;
 }
-bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
+bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   MG_DEBUG(("ctx: %p %p/%lu", context, buf, len));
   return mg_ota_write(buf, len);
 }
