@@ -19,11 +19,6 @@ static struct inputs s_inputs;
 static struct outputs s_outputs;
 static struct misc s_misc;
 
-void glue_init(void) {
-  s_comms.esp32Detected = 0;    // set as "Undetected" at boot, ESP32 UART processing code will set as "Detected" when appropriate
-  MG_DEBUG(("Custom init done"));
-}
-
 // This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
 void glue_websocket_on_timer(struct mg_connection *c) {
   uint64_t *timer_inputs = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
@@ -65,7 +60,11 @@ void glue_websocket_on_timer(struct mg_connection *c) {
   }
 }
 
-// reboot
+void glue_init(void) {
+  s_comms.esp32Detected = 0;    // set as "Undetected" at boot, ESP32 UART processing code will set as "Detected" when appropriate
+  MG_DEBUG(("Custom init done"));
+}
+
 static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
   return s_action_timeout_reboot > mg_now(); // Return true if reboot is in progress
@@ -76,7 +75,6 @@ void glue_start_reboot(void) {
   SCB_AIRCR = 0x05FA0004; // Teensy reboot
 }
 
-// dec_work_thres
 static uint64_t s_action_timeout_dec_work_thres;  // Time when dec_work_thres ends
 bool glue_check_dec_work_thres(void) {
   return s_action_timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
@@ -87,7 +85,16 @@ void glue_start_dec_work_thres(void) {
   glue_update_state();
 }
 
-// set_work_thres
+static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres ends
+bool glue_check_inc_work_thres(void) {
+  return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
+}
+void glue_start_inc_work_thres(void) {
+  s_action_timeout_inc_work_thres = mg_now() + 100; // Start inc_work_thres, finish after 1 second
+  if(s_inputs.workThres < 90) s_inputs.workThres += 1;
+  glue_update_state();
+}
+
 static uint64_t s_action_timeout_set_work_thres;  // Time when set_work_thres ends
 bool glue_check_set_work_thres(void) {
   return s_action_timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
@@ -99,18 +106,6 @@ void glue_start_set_work_thres(void) {
   glue_update_state();
 }
 
-// inc_work_thres
-static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres ends
-bool glue_check_inc_work_thres(void) {
-  return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
-}
-void glue_start_inc_work_thres(void) {
-  s_action_timeout_inc_work_thres = mg_now() + 100; // Start inc_work_thres, finish after 1 second
-  if(s_inputs.workThres < 90) s_inputs.workThres += 1;
-  glue_update_state();
-}
-
-// set_work_digital
 static uint64_t s_action_timeout_set_work_digital;  // Time when set_work_digital ends
 bool glue_check_set_work_digital(void) {
   return s_action_timeout_set_work_digital > mg_now(); // Return true if set_work_digital is in progress
@@ -123,23 +118,21 @@ void glue_start_set_work_digital(void) {
   glue_update_state();
 }
 
-// firmware_update
-void  *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
+void *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
   bool ok = mg_ota_begin(total_size);
   MG_DEBUG(("%s size %lu, ok: %d", file_name, total_size, ok));
   return ok ? (void *) 1 : NULL;
 }
-bool  glue_ota_end_firmware_update(void *context) {
-  bool ok = mg_ota_end();
-  MG_DEBUG(("ctx: %p, success: %d", context, ok));
-  return ok;
+bool glue_ota_end_firmware_update(void *context) {
+  mg_timer_add(&g_mgr, 500, 0, (void (*)(void *)) mg_ota_end, context);
+  return true;
 }
-bool  glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
+bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   MG_DEBUG(("ctx: %p %p/%lu", context, buf, len));
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
+static struct comms s_comms = {"AgOpenGPS", 3, 3, 3, "38400", "460800", "921600", "921600", "60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }

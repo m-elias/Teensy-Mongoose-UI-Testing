@@ -7,7 +7,7 @@
 #include <Streaming.h>
 #include "mongoose_init.h"
 
-const char* inoVersion = "AiO-NG-v6 - " __DATE__ " " __TIME__;
+const char* inoVersion = "AiO-NG-v6 " __DATE__ " " __TIME__;
 
 // globally available, working settings struct
 //  - read/write from/to this struct

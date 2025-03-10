@@ -113,6 +113,14 @@ struct apihandler_array {
 };
 
 struct attribute s_comms_attributes[] = {
+  {"nmeaSource", "string", NULL, offsetof(struct comms, nmeaSource), 10, false},
+  {"imuState", "int", NULL, offsetof(struct comms, imuState), 0, false},
+  {"gps1State", "int", NULL, offsetof(struct comms, gps1State), 0, false},
+  {"gps2State", "int", NULL, offsetof(struct comms, gps2State), 0, false},
+  {"rs232Baud", "string", NULL, offsetof(struct comms, rs232Baud), 7, false},
+  {"esp32Baud", "string", NULL, offsetof(struct comms, esp32Baud), 7, false},
+  {"gps1Baud", "string", NULL, offsetof(struct comms, gps1Baud), 7, false},
+  {"gps2Baud", "string", NULL, offsetof(struct comms, gps2Baud), 7, false},
   {"gpsSync", "string", NULL, offsetof(struct comms, gpsSync), 15, false},
   {"gpsPass", "bool", NULL, offsetof(struct comms, gpsPass), 0, false},
   {"esp32Detected", "int", NULL, offsetof(struct comms, esp32Detected), 0, false},
@@ -653,20 +661,6 @@ static void mqtt_timer(void *arg) {
 }
 #endif  // WIZARD_ENABLE_MQTT
 
-#if WIZARD_ENABLE_WEBSOCKET
-static void websocket_timer(void *arg) {
-  struct mg_mgr *mgr = (struct mg_mgr *) arg;
-  struct mg_connection *c;
-  for (c = mgr->conns; c != NULL; c = c->next) {
-    if (c->is_websocket) {
-      // Prevent stale connections to grow infinitely
-      if (c->send.len > 2048) continue;
-      glue_websocket_on_timer(c);
-    }
-  }
-}
-#endif
-
 #if WIZARD_ENABLE_MODBUS
 static void handle_modbus_pdu(struct mg_connection *c, uint8_t *buf,
                               size_t len) {
@@ -821,12 +815,6 @@ void mongoose_init(void) {
 #if WIZARD_ENABLE_MQTT
   MG_INFO(("Starting MQTT reconnection timer"));
   mg_timer_add(&g_mgr, 1000, MG_TIMER_REPEAT, mqtt_timer, &g_mgr);
-#endif
-
-#if WIZARD_ENABLE_WEBSOCKET
-  MG_INFO(("Starting websocket timer"));
-  mg_timer_add(&g_mgr, WIZARD_WEBSOCKET_TIMER_MS, MG_TIMER_REPEAT,
-               websocket_timer, &g_mgr);
 #endif
 
 #if WIZARD_ENABLE_MODBUS

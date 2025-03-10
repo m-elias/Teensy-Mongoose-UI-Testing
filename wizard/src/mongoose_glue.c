@@ -6,35 +6,57 @@
 // #include "hal.h"
 
 #include "mongoose_glue.h"
+#include "Arduino.h"
 
-void glue_init(void) {
-  MG_DEBUG(("Custom init done"));
-}
+// Dropdown item lists
+const char* pwmFreqList = "[\"122 hz - Baraki Valve\",\"490 hz\",\"1000 hz - Danfoss\",\"3921 hz\",\"9210 hz\",\"39210 hz - Motor\"]";
+const char* kickoutModeList = "[\"1 - AOG Setting (default)\",\"2 - Quadrature Encoder\",\"3 - JD Variable Duty Encoder\",\"4 - WAS-PWM Ratio\",\"5 - Encoder Speed\"]";
 
-// This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
-void glue_websocket_on_timer(struct mg_connection *c) {
-  uint64_t *timer_voltage = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
-  uint64_t *timer_pressure = (uint64_t *) &c->data[sizeof(uint64_t)];
+// added these forward declarations so that btn functions can access API endpoint structs
+static struct comms s_comms;
+static struct inputs s_inputs;
+static struct outputs s_outputs;
+static struct misc s_misc;
+
+// Iterate over all websocket connections and write JSON message to them
+static void ws_voltage_timer(void *arg) {
+  struct mg_mgr *mgr = (struct mg_mgr *) arg;
+  struct mg_connection *c;
+
   uint64_t now = mg_millis();
 
-  // Send updates to "websocket.voltage" value every 200 milliseconds
-  if (mg_timer_expired(timer_voltage, 200, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu, %m: %s}", MG_ESC("voltage"),
-                 now % 1000, MG_ESC("led"), now & 1 ? "true" : "false");
-  }
+  for (c = mgr->conns; c != NULL; c = c->next) {
+    if (c->is_websocket) {
+      // Prevent stale connections to grow infinitely
+      if (c->send.len > 2048) continue;
 
-  // Send updates to "websocket.pressure" value every 5000 milliseconds
-  if (mg_timer_expired(timer_pressure, 5000, now)) {
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu}", MG_ESC("pressure"), now);
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %llu, %m: %s}",
+                   MG_ESC("voltage"), now % 1000,  // Simulate voltage
+                   MG_ESC("led"), now & 1 ? "true" : "false"  // Simulate LED
+      );
+    }
   }
 }
 
+void glue_init(void) {
+  MG_INFO(("Starting websocket timers"));
+
+  mg_timer_add(&g_mgr, 200,       // Call every 200 milliseconds
+               MG_TIMER_REPEAT,   // Periodically
+               ws_voltage_timer,  // This function
+               &g_mgr             // And pass this parameter to the function
+  );
+
+  MG_DEBUG(("Custom init done"));
+}
 static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
   return s_action_timeout_reboot > mg_now(); // Return true if reboot is in progress
 }
 void glue_start_reboot(void) {
-  s_action_timeout_reboot = mg_now() + 1000; // Start reboot, finish after 1 second
+  s_action_timeout_reboot = mg_now() + 4000; // This timer doesn't do anything because the Teensy reboots and forgets about the timer
+  MG_INFO(("rebooting"));
+  SCB_AIRCR = 0x05FA0004; // Teensy reboot
 }
 
 static uint64_t s_action_timeout_dec_work_thres;  // Time when dec_work_thres ends
@@ -42,7 +64,9 @@ bool glue_check_dec_work_thres(void) {
   return s_action_timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
 }
 void glue_start_dec_work_thres(void) {
-  s_action_timeout_dec_work_thres = mg_now() + 1000; // Start dec_work_thres, finish after 1 second
+  s_action_timeout_dec_work_thres = mg_now() + 100; // Start dec_work_thres, finish after 1 second
+  if(s_inputs.workThres > 10) s_inputs.workThres -= 1;
+  glue_update_state();
 }
 
 static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres ends
@@ -50,7 +74,9 @@ bool glue_check_inc_work_thres(void) {
   return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
 }
 void glue_start_inc_work_thres(void) {
-  s_action_timeout_inc_work_thres = mg_now() + 1000; // Start inc_work_thres, finish after 1 second
+  s_action_timeout_inc_work_thres = mg_now() + 100; // Start inc_work_thres, finish after 1 second
+  if(s_inputs.workThres < 90) s_inputs.workThres += 1;
+  glue_update_state();
 }
 
 static uint64_t s_action_timeout_set_work_thres;  // Time when set_work_thres ends
@@ -58,7 +84,10 @@ bool glue_check_set_work_thres(void) {
   return s_action_timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
 }
 void glue_start_set_work_thres(void) {
-  s_action_timeout_set_work_thres = mg_now() + 1000; // Start set_work_thres, finish after 1 second
+  s_action_timeout_set_work_thres = mg_now() + 250; // Start set_work_thres, finish after 250ms
+  //s_inputs.workThres = min(max(s_inputs.workInput, 10), 90);
+  s_inputs.workThres = constrain(s_inputs.workInput, 10, 90);
+  glue_update_state();
 }
 
 static uint64_t s_action_timeout_set_work_digital;  // Time when set_work_digital ends
@@ -66,7 +95,11 @@ bool glue_check_set_work_digital(void) {
   return s_action_timeout_set_work_digital > mg_now(); // Return true if set_work_digital is in progress
 }
 void glue_start_set_work_digital(void) {
-  s_action_timeout_set_work_digital = mg_now() + 1000; // Start set_work_digital, finish after 1 second
+  s_action_timeout_set_work_digital = mg_now() + 250; // Start set_work_digital, finish after 250ms
+  s_inputs.workThres = 50;
+  memcpy(s_inputs.workHystStr, "18", 2);
+  s_inputs.workInvert = true;
+  glue_update_state();
 }
 
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
@@ -83,7 +116,7 @@ bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
+static struct comms s_comms = {"AgOpenGPS", 3, 3, 3, "38400", "460800", "921600", "921600", "60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -101,7 +134,7 @@ void glue_set_inputs(struct inputs *data) {
 
 void glue_reply_inputsKickoutModeList(struct mg_connection *c, struct mg_http_message *hm) {
   const char *headers = "Cache-Control: no-cache\r\n" "Content-Type: application/json\r\n";
-  const char *value = "[\"1 - AOG Setting (default)\",\"2 - Quadrature Encoder\",\"3 - JD Variable Duty Encoder\",\"4 - WAS-PWM Ratio\",\"5 - Encoder Speed\"]";
+  const char *value = kickoutModeList;
   (void) hm;
   mg_http_reply(c, 200, headers, "%s\n", value);
 }
@@ -115,7 +148,7 @@ void glue_set_outputs(struct outputs *data) {
 
 void glue_reply_outputsPwmFreqList(struct mg_connection *c, struct mg_http_message *hm) {
   const char *headers = "Cache-Control: no-cache\r\n" "Content-Type: application/json\r\n";
-  const char *value = "[\"122 hz - Valve\",\"490 hz\",\"3921 hz\"]";
+  const char *value = pwmFreqList;
   (void) hm;
   mg_http_reply(c, 200, headers, "%s\n", value);
 }

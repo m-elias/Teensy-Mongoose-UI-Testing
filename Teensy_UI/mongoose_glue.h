@@ -66,9 +66,6 @@ void glue_update_state(void);
 
 // Firmware Glue
 
-
-void glue_websocket_on_timer(struct mg_connection *c);
-
 void glue_start_reboot(void);  // Start an action
 bool glue_check_reboot(void);  // Check if action is still in progress
 
@@ -89,6 +86,14 @@ bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
 
 struct comms {
+  char nmeaSource[10];
+  int imuState;
+  int gps1State;
+  int gps2State;
+  char rs232Baud[7];
+  char esp32Baud[7];
+  char gps1Baud[7];
+  char gps2Baud[7];
   char gpsSync[15];
   bool gpsPass;
   int esp32Detected;
