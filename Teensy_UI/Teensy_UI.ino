@@ -5,6 +5,7 @@
 #include "mongoose_glue.h"
 #include <EEPROM.h>
 #include <Streaming.h>
+#include "HardwareSerial.h"
 #include "mongoose_init.h"
 
 const char* inoVersion = "AiO-NG-v6 " __DATE__ " " __TIME__;
@@ -39,7 +40,7 @@ void setup() {
 
   ethernet_init();
   mongoose_init();
-  //mg_set_ip();  // causes Teensy to hang
+  serial_init();
 
   uint16_t eeIdentRead;
   EEPROM.get(eeAddr + 0, eeIdentRead);  // get eeprom ident, for checking if eeprom needs resetting
@@ -70,10 +71,6 @@ void setup() {
   LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::PWR_ON);
   LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::ETH_READY);
 
-  SerialESP32.begin(baudESP32);
-  SerialESP32.addMemoryForRead(ESP32rxbuffer, sizeof(ESP32rxbuffer));
-  SerialESP32.addMemoryForWrite(ESP32txbuffer, sizeof(ESP32txbuffer));
-
   Serial.print("F_CPU: "); Serial.print(F_CPU/1e6);  Serial.println(" MHz."); 
   //Serial.print("ADC_F_BUS: "); Serial.print(ADC_F_BUS/1e6); Serial.println(" MHz.");  // needs ADC library?
 }
@@ -82,9 +79,10 @@ void loop() {
   mongoose_poll();
   LEDs.updateLoop();
   esp32DataCheck(); // check for ESP32 serial data
-  serialDataCheck();
+  USB_Data_Check();
   checkInputsTimer();
   checkMiscTimer();
+  uartDataChecks();
 
 
   static uint64_t timer;

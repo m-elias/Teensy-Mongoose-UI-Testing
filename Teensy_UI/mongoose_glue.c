@@ -12,6 +12,14 @@
 // Dropdown item lists
 const char* pwmFreqList = "[\"122 hz - Baraki Valve\",\"490 hz\",\"1000 hz - Danfoss\",\"3921 hz\",\"9210 hz\",\"39210 hz - Motor\"]";
 const char* kickoutModeList = "[\"1 - AOG Setting (default)\",\"2 - Quadrature Encoder\",\"3 - JD Variable Duty Encoder\",\"4 - WAS-PWM Ratio\",\"5 - Encoder Speed\"]";
+const char* ko_help[6] = {
+    "Unknown option/error.",
+    "Set AOG to Count/Pressure/Current Sensor according to your setup",
+    "Set AOG to \"Count Sensor\". Connect both signals, one to each Kickout Input (Analog & Digital)",
+    "Set AOG to \"Pressure Sensor\". Connect to Kickout Analog (Fastest response time)",
+    "Set AOG to \"Pressure Sensor\". *Need more instructions*",
+    "Set AOG to \"Pressure Sensor\". *Need more instructions*"
+};
 
 // added these forward declarations so that btn functions can access API endpoint structs
 static struct comms s_comms;
@@ -19,49 +27,64 @@ static struct inputs s_inputs;
 static struct outputs s_outputs;
 static struct misc s_misc;
 
-// This function is called automatically every WIZARD_WEBSOCKET_TIMER_MS millis
-void glue_websocket_on_timer(struct mg_connection *c) {
-  uint64_t *timer_inputs = (uint64_t *) &c->data[0];  // Beware: c->data size is MG_DATA_SIZE
-  uint64_t *timer_2s = (uint64_t *) &c->data[sizeof(uint64_t)];
-  uint64_t now = mg_millis();
+static void ws_timer_50(void *arg) {    //  || s_misc.update
+  struct mg_mgr *mgr = (struct mg_mgr *) arg;
+  struct mg_connection *c;
+  //uint64_t now = mg_millis();
 
-  // Send websocket updates for "Inputs" values every 50 milliseconds
-  if (mg_timer_expired(timer_inputs, 50, now) || s_misc.update) {
-    s_misc.update = false;
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("steerState"), s_inputs.steerState);
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workState"), s_inputs.workState);
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workInput"), s_inputs.workInput);
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workThres"), s_inputs.workThres);
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutState"), s_inputs.kickoutState);
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutStateHist"), s_inputs.kickoutStateHist);
+  for (c = mgr->conns; c != NULL; c = c->next) {
+    if (c->is_websocket) {
+      if (c->send.len > 2048) continue;  // Prevent stale connections to grow infinitely
+
+      s_misc.update = false;
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("steerState"), s_inputs.steerState);
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workState"), s_inputs.workState);
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workInput"), s_inputs.workInput);
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("workThres"), s_inputs.workThres);
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutState"), s_inputs.kickoutState);
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %d}", MG_ESC("kickoutStateHist"), s_inputs.kickoutStateHist);
+    }
   }
+}
 
+// Update help text in Kickout panel according to option selected in dropdown
+static void ws_timer_200(void *arg) {    // || oldKickoutMode != s_inputs.kickoutModeStr[0]
+  struct mg_mgr *mgr = (struct mg_mgr *) arg;
+  struct mg_connection *c;
+  //uint64_t now = mg_millis();
+  //static uint8_t oldKickoutMode = 0;
 
-  // Update help text in Kickout panel according to option selected in dropdown
-  static uint8_t oldKickoutMode = 0;
-  if (oldKickoutMode != s_inputs.kickoutModeStr[0] || mg_timer_expired(timer_2s, 2000, now)) { // update immediately and every 2s
-    const char* ko_help_1 = "Set AOG to Count/Pressure/Current Sensor according to your setup";
-    const char* ko_help_2 = "Set AOG to \"Count Sensor\". Connect both signals, one to each Kickout Input (Analog & Digital)";
-    const char* ko_help_3 = "Set AOG to \"Pressure Sensor\". Connect to Kickout Analog (Fastest response time)";
-    const char* ko_help_4 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
-    const char* ko_help_5 = "Set AOG to \"Pressure Sensor\". *Need more instructions*";
-    const char* ko_help_selected = "Unknown option/error, reselect the above.";
+  for (c = mgr->conns; c != NULL; c = c->next) {
+    if (c->is_websocket) {
+      if (c->send.len > 2048) continue;  // Prevent stale connections to grow infinitely
 
-    // check first char of dropdown's selected option to match displayed help text
-    if (s_inputs.kickoutModeStr[0] == '1') ko_help_selected = ko_help_1;
-    else if (s_inputs.kickoutModeStr[0] == '2') ko_help_selected = ko_help_2;
-    else if (s_inputs.kickoutModeStr[0] == '3') ko_help_selected = ko_help_3;
-    else if (s_inputs.kickoutModeStr[0] == '4') ko_help_selected = ko_help_4;
-    else if (s_inputs.kickoutModeStr[0] == '5') ko_help_selected = ko_help_5;
+      // check first char of dropdown's selected option to match displayed help text
+      uint8_t koSelection = s_inputs.kickoutModeStr[0] - '0';
+      const char* ko_help_selected = ko_help[koSelection];
 
-    //MG_INFO((s_inputs.kickoutModeStr));
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
-    oldKickoutMode = s_inputs.kickoutModeStr[0];
+      //MG_INFO((s_inputs.kickoutModeStr));
+      mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
+      //oldKickoutMode = s_inputs.kickoutModeStr[0];
+    }
   }
 }
 
 void glue_init(void) {
-  s_comms.esp32Detected = 0;    // set as "Undetected" at boot, ESP32 UART processing code will set as "Detected" when appropriate
+  MG_INFO(("Starting websocket timers"));
+
+  mg_timer_add(&g_mgr, 50,        // Call every 50 milliseconds
+               MG_TIMER_REPEAT,   // Periodically
+               ws_timer_50,   // This function
+               &g_mgr             // And pass this parameter to the function
+  );
+
+  mg_timer_add(&g_mgr, 200,      // Call every 2000 milliseconds
+               MG_TIMER_REPEAT,   // Periodically
+               ws_timer_200,       // This function
+               &g_mgr             // And pass this parameter to the function
+  );
+
+  s_comms.esp32State = 3;    // set as "Undetected" at boot, ESP32 UART processing code will set as "Detected" when appropriate
   MG_DEBUG(("Custom init done"));
 }
 
@@ -132,7 +155,7 @@ bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"AgOpenGPS", 3, 3, 3, "38400", "460800", "921600", "921600", "60ms - F9P", false, 3, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
+static struct comms s_comms = {3, "115200", "38400", "AgOpenGPS", 3, 3, "921600", "921600", false, "60ms - F9P", 3, 3, "460800", "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }

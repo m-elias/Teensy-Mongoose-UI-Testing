@@ -17,7 +17,6 @@ extern "C" {
 #define WIZARD_ENABLE_HTTP_UI_LOGIN 0
 
 #define WIZARD_ENABLE_WEBSOCKET 1
-#define WIZARD_WEBSOCKET_TIMER_MS 50
 
 #define WIZARD_ENABLE_MQTT 0
 #define WIZARD_MQTT_URL ""
@@ -86,17 +85,19 @@ bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
 
 struct comms {
+  int rtkState;
+  char rtkBaud[7];
+  char rs232Baud[7];
   char nmeaSource[10];
-  int imuState;
   int gps1State;
   int gps2State;
-  char rs232Baud[7];
-  char esp32Baud[7];
   char gps1Baud[7];
   char gps2Baud[7];
-  char gpsSync[15];
   bool gpsPass;
-  int esp32Detected;
+  char gpsSync[15];
+  int imuState;
+  int esp32State;
+  char esp32Baud[7];
   char esp32Runtime[20];
   int esp32NumClients;
   char esp32SSID[24];

@@ -49,7 +49,7 @@ void esp32DataCheck()
             //uint16_t esp32m2mPort = (incomingBytes[11] << 8) + incomingBytes[10];
             //Serial.printf("M2M Port: %i\r\n", esp32m2mPort);
 
-            comms_vars.esp32Detected = 1;
+            comms_vars.esp32State = 1;
 
             esp32Runtime /= 1000;
             
