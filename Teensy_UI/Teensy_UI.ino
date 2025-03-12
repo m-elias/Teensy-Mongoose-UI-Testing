@@ -70,6 +70,7 @@ void setup() {
   LEDs.init();
   LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::PWR_ON);
   LEDs.set(LED_ID::PWR_ETH, PWR_ETH_STATE::ETH_READY);
+  LEDs.set(LED_ID::STEER, STEER_STATE::WAS_ERROR);
 
   Serial.print("F_CPU: "); Serial.print(F_CPU/1e6);  Serial.println(" MHz."); 
   //Serial.print("ADC_F_BUS: "); Serial.print(ADC_F_BUS/1e6); Serial.println(" MHz.");  // needs ADC library?

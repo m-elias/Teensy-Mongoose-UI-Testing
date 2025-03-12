@@ -16,26 +16,27 @@ void initializeInputs(){
   glue_get_inputs(&input_vars); // pull-sync from UI
 
   if (analogRead(WAS_A_PIN) < 20) { // means no WAS connected, also checked in loop() inputsTimer
-    input_vars.steerEnabled = 0;
+    input_vars.steerState = 0;
   } else {
-    input_vars.steerEnabled = 1;
+    input_vars.steerState = 1;
   }
-  Serial.printf("Steer Input %s\r\n", (input_vars.steerEnabled ? "Enabled" : "*Disabled!* - check your wiring & settings"));
+  Serial.printf("Steer Input %s\r\n", (input_vars.steerState ? "Enabled" : "*Disabled!* - check your wiring & settings"));
 
   if (1>2) {  // replace with conditional expr to disable work input UI elements appropriately
-    input_vars.workEnabled = 0;
+    input_vars.workState = 3;
   } else {
-    input_vars.workEnabled = 1;
+    input_vars.workState = 0;
   }
-  Serial.printf("Work Input %s\r\n", (input_vars.workEnabled ? "Enabled" : "*Disabled!* - check your wiring & settings"));
+  //Serial.printf("Work Input %s\r\n", (input_vars.workState ? "Enabled" : "*Disabled!* - check your wiring & settings"));
 
   if (1>2) {  // replace with conditional expr to disable kickout input UI elements appropriately
-    input_vars.kickoutEnabled = 0;
+    input_vars.kickoutState = 3;
   } else {
-    input_vars.kickoutEnabled = 1;
+    input_vars.kickoutState = 0;
   }
-  Serial.printf("Kickout Input %s\r\n", (input_vars.kickoutEnabled ? "Enabled" : "*Disabled!* - check your wiring & settings"));
+  Serial.printf("Kickout Input %s\r\n", (input_vars.kickoutState ? "Enabled" : "*Disabled!* - check your wiring & settings"));
   glue_set_inputs(&input_vars); // push-sync to UI
+  glue_update_state();
 }
 
 void checkInputsTimer()
@@ -50,11 +51,11 @@ void checkInputsTimer()
     float read = float(analogRead(WAS_A_PIN)) / 10.24; // convert to 0-100 percent (/1024*100)
     
     if (read < 3.0 || read > 97.0) {  // detect disconnected sensor
-      input_vars.workEnabled = 0;
+      input_vars.workState = 3;
     } else {
-      input_vars.workEnabled = 1;
+      input_vars.workState = 0;
     }
-    //Serial.printf("Steer Enabled: %i\r\n", input_vars.steerEnabled);
+    //Serial.printf("Steer Enabled: %i\r\n", input_vars.steerState);
 
     if (input_vars.workInvert) read = 100 - read;  // option to invert input polarity
 
@@ -78,20 +79,14 @@ void checkInputsTimer()
 
     // **** read digital KICKOUT input ****
     static elapsedMillis kickoutTransitionTimer = 0;
-    if (input_vars.kickoutState == digitalRead(KICKOUT_D_PIN)){ // detect change
+    if (input_vars.kickoutState == digitalRead(KICKOUT_D_PIN)){ // detect change (input state is inverted from variable)
       kickoutTransitionTimer = 0;
-      //memcpy(input_vars.kickoutStateColor, "#FFA500", 7); // set temporary orange color
-      input_vars.kickoutStateHist = 2;  // set temp orange color
+      input_vars.kickoutStateHist = 2;  // set temp color to show there was a recent change in state
       input_vars.kickoutState = !input_vars.kickoutState;
     }
 
     if (kickoutTransitionTimer > 2000) {
       input_vars.kickoutStateHist = input_vars.kickoutState;
-      /*if (input_vars.kickoutState == HIGH) {
-        memcpy(input_vars.kickoutStateColor, "#22c55e", 7);
-      } else {
-        memcpy(input_vars.kickoutStateColor, "#ef4444", 7);
-      }*/
     }
 
     glue_set_inputs(&input_vars); // push-sync to UI

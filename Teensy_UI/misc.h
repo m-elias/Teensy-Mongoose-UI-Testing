@@ -9,16 +9,17 @@ void checkMiscTimer()
 
     LEDs.setBrightness(int(float(misc_vars.rgbBrightness) / 2.55));
 
-    if (esp32ElapsedUpdateTime > 10000) {
-      struct comms comms_vars;
-      glue_get_comms(&comms_vars);
+    struct comms comms_vars;
+    glue_get_comms(&comms_vars);
+    if (esp32ElapsedUpdateTime > 10000 && comms_vars.esp32State < 3) {
       if (esp32ElapsedUpdateTime < 20000) {
         comms_vars.esp32State = 2;  // set as "Timed out"
       } else {
         comms_vars.esp32State = 0;  // set as "Disconnected"
       }
-      glue_set_comms(&comms_vars);
     }
+    glue_set_comms(&comms_vars);
+    glue_update_state();
   }
 }
 
@@ -30,19 +31,19 @@ void USB_Data_Check()
 
     if (sRead == 's') {   // toggle Steer input UI elements visible/hidden
       glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.steerEnabled = !input_vars.steerEnabled;
+      input_vars.steerState = !input_vars.steerState;
       glue_set_inputs(&input_vars); // push-sync to UI
     }
 
     if (sRead == 'k') {   // toggle Kickout input UI elements visible/hidden
       glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.kickoutEnabled = !input_vars.kickoutEnabled;
+      input_vars.kickoutState = !input_vars.kickoutState;
       glue_set_inputs(&input_vars); // push-sync to UI
     }
 
     if (sRead == 'w') {   // toggle Work input UI elements visible/hidden
       glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.workEnabled = !input_vars.workEnabled;
+      input_vars.workState = !input_vars.workState;
       glue_set_inputs(&input_vars); // push-sync to UI
     }
 
@@ -61,14 +62,16 @@ void USB_Data_Check()
     if (sRead == 'd') {
       glue_start_set_work_digital();
     }
+
+    glue_update_state();
   }
 }
 
-#define SerialIMU   Serial7 // IMU BNO-085 in RVC serial mode
+#define SerialIMU   Serial4 // IMU BNO-085 in RVC serial mode
 #define SerialRTK   Serial3 // RTK radio
 #define SerialGPS1  Serial5 // GPS1 UART (Right F9P, or UM982)
 #define SerialGPS2  Serial8 // GPS2 UART (Left F9P)
-#define SerialRS232 Serial4 // RS232 UART
+#define SerialRS232 Serial7 // RS232 UART
 #define SerialESP32 Serial2 // ESP32 UART (for ESP32 WiFi Bridge)
 
 const int32_t baudGPS1 = 921600;
@@ -87,6 +90,13 @@ void serial_init()
   SerialESP32.begin(baudESP32);
   SerialESP32.addMemoryForRead(ESP32rxbuffer, sizeof(ESP32rxbuffer));
   SerialESP32.addMemoryForWrite(ESP32txbuffer, sizeof(ESP32txbuffer));
+
+  SerialGPS1.clear();
+  SerialGPS2.clear();
+  SerialRTK.clear();
+  SerialRS232.clear();
+  SerialIMU.clear();
+  SerialESP32.clear();
 
 }
 
@@ -135,7 +145,6 @@ void uartDataChecks()
     comms_vars.imuState = 0;
   }
 
-  comms_vars.gps2State = 1;
-
   glue_set_comms(&comms_vars);
+  glue_update_state();
 }

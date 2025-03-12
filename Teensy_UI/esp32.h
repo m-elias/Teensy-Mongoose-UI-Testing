@@ -72,6 +72,7 @@ void esp32DataCheck()
             comms_vars.esp32NumClients = esp32NumClients;
             glue_set_comms(&comms_vars);
             esp32ElapsedUpdateTime = 0;
+            glue_update_state();
           }
           
           else if (incomingBytes[2] == 91 && incomingBytes[3] == 91) { // ESP32 WiFi Creds PGN
@@ -94,6 +95,7 @@ void esp32DataCheck()
             memcpy(comms_vars.esp32PW, str, 24);
 
             glue_set_comms(&comms_vars);
+            glue_update_state();
 
           // all other properly formed PGNs forwarded to AgIO
           } else {
@@ -124,6 +126,7 @@ void esp32DataCheck()
     } else {  // if esp32 bridge is NOT enabled, just dump the data (empty the buffer)
       SerialESP32.read();
       esp32ElapsedUpdateTime = 0;
+      comms_vars.esp32State = 4;
     }
   } // end if (SerialESP32.available())
 

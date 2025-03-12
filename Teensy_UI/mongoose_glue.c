@@ -84,7 +84,8 @@ void glue_init(void) {
                &g_mgr             // And pass this parameter to the function
   );
 
-  s_comms.esp32State = 3;    // set as "Undetected" at boot, ESP32 UART processing code will set as "Detected" when appropriate
+  s_comms.gps2State = 3;    // set as 3 - "Undetected" at boot, UI Wizard defaults to '4' to show all UI elements while designing layout
+  //s_comms.ntripState = 3;
   MG_DEBUG(("Custom init done"));
 }
 
@@ -155,7 +156,7 @@ bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {3, "115200", "38400", "AgOpenGPS", 3, 3, "921600", "921600", false, "60ms - F9P", 3, 3, "460800", "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
+static struct comms s_comms = {3, 3, "115200", "38400", "AgOpenGPS", 3, 3, "921600", "921600", false, "60ms - F9P", 3, 3, "460800", "0d 0h 0m 0s", 12, "**SSID**", "**PW**", true};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -163,7 +164,7 @@ void glue_set_comms(struct comms *data) {
   s_comms = *data; // Sync with your device
 }
 
-static struct inputs s_inputs = {2, false, 2, false, 50, true, 50, "18", 18, 2, false, 0, "1 - AOG Setting (default)"};
+static struct inputs s_inputs = {0, 3, 50, true, 50, "18", 18, 3, 2, "1 - AOG Setting (default)"};
 void glue_get_inputs(struct inputs *data) {
   *data = s_inputs;  // Sync with your device
 }

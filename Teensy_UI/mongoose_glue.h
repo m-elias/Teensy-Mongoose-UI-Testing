@@ -85,6 +85,7 @@ bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
 
 struct comms {
+  int ntripState;
   int rtkState;
   char rtkBaud[7];
   char rs232Baud[7];
@@ -108,17 +109,14 @@ void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);
 
 struct inputs {
-  int steerEnabled;
-  bool steerState;
-  int workEnabled;
-  bool workState;
+  int steerState;
+  int workState;
   int workInput;
   bool workInvert;
   int workThres;
   char workHystStr[3];
   int workHystVal;
-  int kickoutEnabled;
-  bool kickoutState;
+  int kickoutState;
   int kickoutStateHist;
   char kickoutModeStr[30];
 };
