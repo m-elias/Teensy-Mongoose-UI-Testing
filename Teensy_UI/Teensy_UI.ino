@@ -19,9 +19,9 @@ const char* inoVersion = "AiO-NG-v6 " __DATE__ " " __TIME__;
 const uint16_t EE_IDENT = 2417; // change to force EE update
 const uint16_t eeAddr = 0;
 
-#include "inputs.h"
 #include "LEDS.h"
 LEDS LEDs = LEDS(1000, 255, 64, 127);   // 1000ms RGB update, 255/64/127 RGB brightness balance levels for v5.0a
+#include "inputs.h"
 #include "esp32.h"
 #include "misc.h"
 

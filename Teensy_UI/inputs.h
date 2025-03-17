@@ -1,3 +1,4 @@
+#include "pins_arduino.h"
 #include "core_pins.h"
 #define WAS_A_PIN       A15     // WAS input
 #define STEER_PIN         2     // STEER input
@@ -44,6 +45,7 @@ void checkInputsTimer()
   static elapsedMillis inputsTimer = 0;
   if (inputsTimer > 99) { // 10hz
     inputsTimer -= 100;   // try to maintain steady 10hz
+    LEDs.queueBlueFlash(LED_ID::GPS);
     struct inputs input_vars;
     glue_get_inputs(&input_vars); // pull-sync from UI
 
