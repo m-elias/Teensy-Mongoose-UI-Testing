@@ -7,6 +7,7 @@
 #include <Streaming.h>
 #include "HardwareSerial.h"
 #include "mongoose_init.h"
+#include "mg_handlers.h"
 
 const char* inoVersion = "AiO-NG-v6 " __DATE__ " " __TIME__;
 
@@ -37,6 +38,15 @@ void setup() {
   //MG_INFO(("Hello2"));
   //MG_DEBUG(("Hello3"));   // doesn't print in setup() with default debug settings
   //MG_VERBOSE(("Hello4"));  // doesn't print in setup() with default debug settings
+
+  mongoose_add_ws_handler(50, ws_50);
+  mongoose_add_ws_handler(200, ws_200);
+
+  mongoose_set_http_handlers("reboot", check_reboot, start_reboot);
+  mongoose_set_http_handlers("dec_work_thres", check_dec_work_thres, start_dec_work_thres);
+  mongoose_set_http_handlers("inc_work_thres", check_inc_work_thres, start_inc_work_thres);
+  mongoose_set_http_handlers("set_work_thres", check_set_work_thres, start_set_work_thres);
+  mongoose_set_http_handlers("set_work_digital", check_set_work_digital, start_set_work_digital);
 
   ethernet_init();
   mongoose_init();

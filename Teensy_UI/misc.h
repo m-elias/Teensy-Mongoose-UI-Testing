@@ -98,6 +98,10 @@ void serial_init()
   SerialIMU.clear();
   SerialESP32.clear();
 
+  struct comms comms_local;
+  glue_get_comms(&comms_local);
+  //comms_local.gps2State = 3;    // set as 3 - "Undetected" at boot, UI Wizard defaults to '4' to show all UI elements while designing layout
+  glue_set_comms(&comms_local);
 }
 
 void uartDataChecks()
