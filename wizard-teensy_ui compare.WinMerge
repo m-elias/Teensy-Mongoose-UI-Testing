@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
 	<paths>
-		<left>C:\Users\Matt\Documents\GitHub\m-elias\Teensy-Mongoose-UI-Testing\wizard\src</left>
+		<left>C:\Users\Matt\Documents\GitHub\m-elias\Teensy-Mongoose-UI-Testing\Wizard\mongoose</left>
 		<right>C:\Users\Matt\Documents\GitHub\m-elias\Teensy-Mongoose-UI-Testing\Teensy_UI</right>
 		<filter>*.*</filter>
 		<subfolders>1</subfolders>

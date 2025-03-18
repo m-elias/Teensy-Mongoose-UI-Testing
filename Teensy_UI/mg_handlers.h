@@ -1,5 +1,4 @@
-
-
+#include "avr/pgmspace.h"
 // ******************* Websocket callback functions *************************
 
 static void ws_50(struct mg_connection *c) {    //  || s_misc.update
@@ -51,12 +50,13 @@ void start_reboot(void) {
   SCB_AIRCR = 0x05FA0004; // Teensy reboot
 }
 
-static uint64_t timeout_dec_work_thres;  // Time when dec_work_thres ends
+//static uint64_t timeout_dec_work_thres;  // Time when dec_work_thres ends
 bool check_dec_work_thres(void) {
-  return timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
+  //return timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
+  return false;
 }
 void start_dec_work_thres(void) {
-  timeout_dec_work_thres = mg_now() + 100; // Start dec_work_thres, finish after 0.1 second
+  //timeout_dec_work_thres = mg_now() + 100; // Start dec_work_thres, finish after 0.1 second
   struct inputs inputs_local;
   glue_get_inputs(&inputs_local);
   if(inputs_local.workThres > 10) inputs_local.workThres -= 1;
@@ -64,12 +64,13 @@ void start_dec_work_thres(void) {
   glue_update_state();
 }
 
-static uint64_t timeout_inc_work_thres;  // Time when inc_work_thres ends
+//static uint64_t timeout_inc_work_thres;  // Time when inc_work_thres ends
 bool check_inc_work_thres(void) {
-  return timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
+  //return timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
+  return false;
 }
 void start_inc_work_thres(void) {
-  timeout_inc_work_thres = mg_now() + 100; // Start inc_work_thres, finish after 0.1 second
+  //timeout_inc_work_thres = mg_now() + 100; // Start inc_work_thres, finish after 0.1 second
   struct inputs inputs_local;
   glue_get_inputs(&inputs_local);
   if(inputs_local.workThres < 90) inputs_local.workThres += 1;
@@ -77,12 +78,13 @@ void start_inc_work_thres(void) {
   glue_update_state();
 }
 
-static uint64_t timeout_set_work_thres;  // Time when set_work_thres ends
+//static uint64_t timeout_set_work_thres;  // Time when set_work_thres ends
 bool check_set_work_thres(void) {
-  return timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
+  //return timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
+  return false;
 }
 void start_set_work_thres(void) {
-  timeout_set_work_thres = mg_now() + 500; // Start set_work_thres, finish after 0.5 second
+  //timeout_set_work_thres = mg_now() + 500; // Start set_work_thres, finish after 0.5 second
   struct inputs inputs_local;
   glue_get_inputs(&inputs_local);
   inputs_local.workThres = constrain(inputs_local.workInput, 10, 90);
@@ -90,12 +92,13 @@ void start_set_work_thres(void) {
   glue_update_state();
 }
 
-static uint64_t timeout_set_work_digital;  // Time when set_work_digital ends
+//static uint64_t timeout_set_work_digital;  // Time when set_work_digital ends
 bool check_set_work_digital(void) {
-  return timeout_set_work_digital > mg_now(); // Return true if set_work_digital is in progress
+  //return timeout_set_work_digital > mg_now(); // Return true if set_work_digital is in progress
+  return false;
 }
 void start_set_work_digital(void) {
-  timeout_set_work_digital = mg_now() + 500; // Start set_work_digital, finish after 0.5 second
+  //timeout_set_work_digital = mg_now() + 500; // Start set_work_digital, finish after 0.5 second
   struct inputs inputs_local;
   glue_get_inputs(&inputs_local);
   inputs_local.workThres = 50;

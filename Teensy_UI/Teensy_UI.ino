@@ -89,7 +89,7 @@ void setup() {
 void loop() {
   mongoose_poll();
   LEDs.updateLoop();
-  esp32DataCheck(); // check for ESP32 serial data
+  esp32DataCheck();
   USB_Data_Check();
   checkInputsTimer();
   checkMiscTimer();

@@ -1,3 +1,5 @@
+#include "core_pins.h"
+#include <stdint.h>
 #include "elapsedMillis.h"
 void checkMiscTimer()
 {
@@ -110,12 +112,16 @@ void uartDataChecks()
   glue_get_comms(&comms_vars);
 
   static elapsedMillis gps1ValidDataTimer = 0;
+  static elapsedMillis gps1MissedDataTimer = 0;
   if (SerialGPS1.available()) {
     comms_vars.gps1State = 1;
-    if (SerialGPS1.read() == int("$")) gps1ValidDataTimer = 0;
+    char r = SerialGPS1.read();
+    //Serial.print(r);
+    if (r == '$') gps1ValidDataTimer = 0;
   }
   if (gps1ValidDataTimer > 150 && gps1ValidDataTimer < 1100 && comms_vars.gps1State < 3) {
     comms_vars.gps1State = 2;
+    gps1MissedDataTimer = 0;
   }
   if (gps1ValidDataTimer > 1100 && comms_vars.gps1State < 3) {
     comms_vars.gps1State = 0;
@@ -123,31 +129,44 @@ void uartDataChecks()
 
 
   static elapsedMillis rtkValidDataTimer = 0;
+  static elapsedMillis rtkMissedDataTimer = 0;
   if (SerialRTK.available()) {
-    comms_vars.rtkState = 1;
+    if (comms_vars.rtkState != 2 || rtkMissedDataTimer > 3000){
+      comms_vars.rtkState = 1;
+      rtkMissedDataTimer = 0;
+    }
     SerialRTK.read();
     rtkValidDataTimer = 0;
   }
-  if (rtkValidDataTimer > 1500 && rtkValidDataTimer < 11000 && comms_vars.rtkState < 3) {
+  if (rtkValidDataTimer > 2500 && rtkValidDataTimer < 11000 && comms_vars.rtkState < 3) {
     comms_vars.rtkState = 2;
+    rtkMissedDataTimer = 0;
   }
   if (rtkValidDataTimer > 11000 && comms_vars.rtkState < 3) {
-    comms_vars.rtkState = 0;
+    if (comms_vars.rtkState != 2 || rtkMissedDataTimer > 3000) comms_vars.rtkState = 0;
   }
 
 
-  static elapsedMillis imuValidDataTimer = 0;
+  static uint32_t imuValidDataTimer = 0;
+  static uint32_t imuMissedDataTimer = 0;
   if (SerialIMU.available()) {
-    comms_vars.imuState = 1;
+    if (comms_vars.imuState != 2 || millis() - imuMissedDataTimer > 5000) {
+      comms_vars.imuState = 1;
+      imuMissedDataTimer = millis();
+    }
     SerialIMU.read();
-    imuValidDataTimer = 0;
+    Serial.print(millis()); Serial.print(": ");
+    Serial.print(millis() - imuValidDataTimer); Serial.print(" <> "); Serial.println(millis() - imuMissedDataTimer);
+    imuValidDataTimer = millis();
   }
-  if (imuValidDataTimer > 15 && imuValidDataTimer < 110 && comms_vars.imuState < 3) {
+  if (millis() - imuValidDataTimer > 15 && millis() - imuValidDataTimer < 110 && comms_vars.imuState < 3) {
     comms_vars.imuState = 2;
+    imuMissedDataTimer = millis();
   }
-  if (imuValidDataTimer > 110 && comms_vars.imuState < 3) {
-    comms_vars.imuState = 0;
+  if (millis() - imuValidDataTimer > 110 && comms_vars.imuState < 3) {
+    if (comms_vars.imuState != 2 || millis() - imuMissedDataTimer > 5000) comms_vars.imuState = 0;
   }
+  
 
   glue_set_comms(&comms_vars);
   glue_update_state();
