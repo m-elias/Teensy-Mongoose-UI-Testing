@@ -215,6 +215,33 @@ void mg_json_get_str2(struct mg_str json, const char *path, char *buf,
   }
 }
 
+void mongoose_set_http_handlers(const char *name, ...) {
+  struct apihandler *h = get_api_handler(mg_str(name));
+  va_list ap;
+  va_start(ap, name);
+  if (h == NULL) {
+    MG_ERROR(("No API with name [%s]", name));
+  } else if (strcmp(h->type, "data") == 0) {
+    ((struct apihandler_data *) h)->getter = va_arg(ap, void (*)(void *));
+    ((struct apihandler_data *) h)->setter = va_arg(ap, void (*)(void *));
+  } else if (strcmp(h->type, "action") == 0) {
+    ((struct apihandler_action *) h)->checker = va_arg(ap, bool (*)(void));
+    ((struct apihandler_action *) h)->starter = va_arg(ap, void (*)(void));
+  } else if (strcmp(h->type, "ota") == 0 || strcmp(h->type, "upload") == 0) {
+    ((struct apihandler_ota *) h)->opener =
+        va_arg(ap, void *(*) (char *, size_t));
+    ((struct apihandler_ota *) h)->closer = va_arg(ap, bool (*)(void *));
+    ((struct apihandler_ota *) h)->writer =
+        va_arg(ap, bool (*)(void *, void *, size_t));
+  } else if (strcmp(h->type, "custom") == 0) {
+    ((struct apihandler_custom *) h)->reply =
+        va_arg(ap, void (*)(struct mg_connection *, struct mg_http_message *));
+  } else {
+    MG_ERROR(("Setting [%s] failed: not implemented", name));
+  }
+  va_end(ap);
+}
+
 #if WIZARD_ENABLE_HTTP_UI_LOGIN
 
 struct user {
@@ -465,7 +492,7 @@ static void handle_object(struct mg_connection *c, struct mg_http_message *hm,
     }
     // If structure changes, increment version
     if (memcmp(data, tmp, h->data_size) != 0) s_device_change_version++;
-    h->setter(tmp);
+    if (h->setter != NULL) h->setter(tmp);  // Can be NULL if readonly
     free(tmp);
     h->getter(data);  // Re-sync again after setting
   }
@@ -546,7 +573,8 @@ static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
       mg_http_reply(c, 200, JSON_HEADERS, "true");
       memset(as, 0, sizeof(*as));
     }
-  } else if (ev == MG_EV_HTTP_MSG && c->is_websocket == 0 && c->data[0] != 'U') {
+  } else if (ev == MG_EV_HTTP_MSG && c->is_websocket == 0 &&
+             c->data[0] != 'U') {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 #if WIZARD_ENABLE_HTTP || WIZARD_ENABLE_HTTPS
     struct apihandler *h = find_handler(hm);
@@ -607,6 +635,55 @@ static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
     }
   }
 }
+
+#if WIZARD_ENABLE_WEBSOCKET
+struct ws_handler {
+  unsigned timeout_ms;
+  void (*fn)(struct mg_connection *);
+};
+static struct ws_handler
+    s_ws_handlers[sizeof(((struct mg_connection *) 0)->data) /
+                  sizeof(struct ws_handler)];
+static size_t s_ws_handlers_count;
+
+void mongoose_add_ws_handler(unsigned ms, void (*fn)(struct mg_connection *)) {
+  size_t max = sizeof(s_ws_handlers) / sizeof(s_ws_handlers[0]);
+  if (s_ws_handlers_count >= max) {
+    MG_ERROR(("WS handlers limit exceeded, max %lu", max));
+  } else {
+    s_ws_handlers[s_ws_handlers_count].timeout_ms = ms;
+    s_ws_handlers[s_ws_handlers_count].fn = fn;
+    s_ws_handlers_count++;
+  }
+};
+
+static void send_websocket_data(void) {
+  struct mg_connection *c;
+  uint64_t now = mg_millis();
+
+  for (c = g_mgr.conns; c != NULL; c = c->next) {
+    uint64_t *timers = (uint64_t *) &c->data[0];
+    size_t i;
+
+    if (c->is_websocket == 0) continue;  // Not a websocket connection? Skip
+    if (c->send.len > 2048) continue;    // Too much data already? Skip
+
+    for (i = 0; i < s_ws_handlers_count; i++) {
+      if (c->pfn_data == NULL ||
+          mg_timer_expired(&timers[i], s_ws_handlers[i].timeout_ms, now)) {
+        s_ws_handlers[i].fn(c);
+        c->pfn_data = (void *) 1;
+      }
+    }
+  }
+}
+#else
+void mongoose_add_ws_handler(unsigned ms, void (*fn)(struct mg_connection *)) {
+  (void) ms, (void) fn;
+  MG_ERROR(("Websocket support is not enabled!"));
+}
+#endif  // WIZARD_ENABLE_WEBSOCKET
+
 #endif  // WIZARD_ENABLE_HTTP || WIZARD_ENABLE_HTTPS
 
 #if WIZARD_ENABLE_SNTP
@@ -831,12 +908,14 @@ void mongoose_init(void) {
   mg_listen(&g_mgr, CAPTIVE_PORTAL_URL, dns_fn, NULL);
 #endif
 
-  MG_INFO(("Mongoose init complete, calling user init"));
-  glue_init();
+  MG_INFO(("Mongoose init complete"));
 }
 
 void mongoose_poll(void) {
   glue_lock();
   mg_mgr_poll(&g_mgr, 10);
+#if WIZARD_ENABLE_WEBSOCKET
+  send_websocket_data();
+#endif
   glue_unlock();
 }
