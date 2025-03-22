@@ -2,7 +2,7 @@
   
 */
 
-#include "mongoose_glue.h"
+#include "src/mongoose_glue.h"
 #include <EEPROM.h>
 #include <Streaming.h>
 #include "HardwareSerial.h"

@@ -1,7 +1,7 @@
-#include "mongoose.h"
+#include "src/mongoose.h"
 
 extern "C" {
-#include "mongoose_glue.h"
+#include "src/mongoose_glue.h"
 #define TRNG_ENT_COUNT 16
 void ENET_IRQHandler(void);
 uint64_t mg_millis(void) {
