@@ -1104,18 +1104,13 @@ struct mg_str mg_unpacked(const char *path);  // Packed file as mg_str
 void mg_bzero(volatile unsigned char *buf, size_t len);
 bool mg_random(void *buf, size_t len);
 char *mg_random_str(char *buf, size_t len);
-uint16_t mg_ntohs(uint16_t net);
-uint32_t mg_ntohl(uint32_t net);
 uint32_t mg_crc32(uint32_t crc, const char *buf, size_t len);
 uint64_t mg_millis(void);  // Return milliseconds since boot
 bool mg_path_is_sane(const struct mg_str path);
 
-#define mg_htons(x) mg_ntohs(x)
-#define mg_htonl(x) mg_ntohl(x)
-
-#define MG_U32(a, b, c, d)                                           \
-  (((uint32_t) ((a) & 255) << 24) | ((uint32_t) ((b) & 255) << 16) | \
-   ((uint32_t) ((c) & 255) << 8) | (uint32_t) ((d) & 255))
+#define MG_U32(a, b, c, d)                                         \
+  (((uint32_t) ((a) &255) << 24) | ((uint32_t) ((b) &255) << 16) | \
+   ((uint32_t) ((c) &255) << 8) | (uint32_t) ((d) &255))
 
 #define MG_IPV4(a, b, c, d) mg_htonl(MG_U32(a, b, c, d))
 
@@ -1124,9 +1119,15 @@ bool mg_path_is_sane(const struct mg_str path);
 #define MG_IPADDR_PARTS(ADDR) \
   MG_U8P(ADDR)[0], MG_U8P(ADDR)[1], MG_U8P(ADDR)[2], MG_U8P(ADDR)[3]
 
-#define MG_LOAD_BE16(p) ((uint16_t) ((MG_U8P(p)[0] << 8U) | MG_U8P(p)[1]))
-#define MG_LOAD_BE24(p) \
-  ((uint32_t) ((MG_U8P(p)[0] << 16U) | (MG_U8P(p)[1] << 8U) | MG_U8P(p)[2]))
+#define MG_LOAD_BE16(p) \
+  ((uint16_t) (((uint16_t) MG_U8P(p)[0] << 8U) | MG_U8P(p)[1]))
+#define MG_LOAD_BE24(p)                           \
+  ((uint32_t) (((uint32_t) MG_U8P(p)[0] << 16U) | \
+               ((uint32_t) MG_U8P(p)[1] << 8U) | MG_U8P(p)[2]))
+#define MG_LOAD_BE32(p)                           \
+  ((uint32_t) (((uint32_t) MG_U8P(p)[0] << 24U) | \
+               ((uint32_t) MG_U8P(p)[1] << 16U) | \
+               ((uint32_t) MG_U8P(p)[2] << 8U) | MG_U8P(p)[3]))
 #define MG_STORE_BE16(p, n)           \
   do {                                \
     MG_U8P(p)[0] = ((n) >> 8U) & 255; \
@@ -1138,6 +1139,18 @@ bool mg_path_is_sane(const struct mg_str path);
     MG_U8P(p)[1] = ((n) >> 8U) & 255;  \
     MG_U8P(p)[2] = (n) &255;           \
   } while (0)
+#define MG_STORE_BE32(p, n)            \
+  do {                                 \
+    MG_U8P(p)[0] = ((n) >> 24U) & 255; \
+    MG_U8P(p)[1] = ((n) >> 16U) & 255; \
+    MG_U8P(p)[2] = ((n) >> 8U) & 255;  \
+    MG_U8P(p)[3] = (n) &255;           \
+  } while (0)
+
+uint16_t mg_ntohs(uint16_t net);
+uint32_t mg_ntohl(uint32_t net);
+#define mg_htons(x) mg_ntohs(x)
+#define mg_htonl(x) mg_ntohl(x)
 
 #define MG_REG(x) ((volatile uint32_t *) (x))[0]
 #define MG_BIT(x) (((uint32_t) 1U) << (x))
@@ -2211,40 +2224,41 @@ struct mg_mgr {
 };
 
 struct mg_connection {
-  struct mg_connection *next;  // Linkage in struct mg_mgr :: connections
-  struct mg_mgr *mgr;          // Our container
-  struct mg_addr loc;          // Local address
-  struct mg_addr rem;          // Remote address
-  void *fd;                    // Connected socket, or LWIP data
-  unsigned long id;            // Auto-incrementing unique connection ID
-  struct mg_iobuf recv;        // Incoming data
-  struct mg_iobuf send;        // Outgoing data
-  struct mg_iobuf prof;        // Profile data enabled by MG_ENABLE_PROFILE
-  struct mg_iobuf rtls;        // TLS only. Incoming encrypted data
-  mg_event_handler_t fn;       // User-specified event handler function
-  void *fn_data;               // User-specified function parameter
-  mg_event_handler_t pfn;      // Protocol-specific handler function
-  void *pfn_data;              // Protocol-specific function parameter
-  char data[MG_DATA_SIZE];     // Arbitrary connection data
-  void *tls;                   // TLS specific data
-  unsigned is_listening : 1;   // Listening connection
-  unsigned is_client : 1;      // Outbound (client) connection
-  unsigned is_accepted : 1;    // Accepted (server) connection
-  unsigned is_resolving : 1;   // Non-blocking DNS resolution is in progress
-  unsigned is_arplooking : 1;  // Non-blocking ARP resolution is in progress
-  unsigned is_connecting : 1;  // Non-blocking connect is in progress
-  unsigned is_tls : 1;         // TLS-enabled connection
-  unsigned is_tls_hs : 1;      // TLS handshake is in progress
-  unsigned is_udp : 1;         // UDP connection
-  unsigned is_websocket : 1;   // WebSocket connection
-  unsigned is_mqtt5 : 1;       // For MQTT connection, v5 indicator
-  unsigned is_hexdumping : 1;  // Hexdump in/out traffic
-  unsigned is_draining : 1;    // Send remaining data, then close and free
-  unsigned is_closing : 1;     // Close and free the connection immediately
-  unsigned is_full : 1;        // Stop reads, until cleared
-  unsigned is_resp : 1;        // Response is still being generated
-  unsigned is_readable : 1;    // Connection is ready to read
-  unsigned is_writable : 1;    // Connection is ready to write
+  struct mg_connection *next;     // Linkage in struct mg_mgr :: connections
+  struct mg_mgr *mgr;             // Our container
+  struct mg_addr loc;             // Local address
+  struct mg_addr rem;             // Remote address
+  void *fd;                       // Connected socket, or LWIP data
+  unsigned long id;               // Auto-incrementing unique connection ID
+  struct mg_iobuf recv;           // Incoming data
+  struct mg_iobuf send;           // Outgoing data
+  struct mg_iobuf prof;           // Profile data enabled by MG_ENABLE_PROFILE
+  struct mg_iobuf rtls;           // TLS only. Incoming encrypted data
+  mg_event_handler_t fn;          // User-specified event handler function
+  void *fn_data;                  // User-specified function parameter
+  mg_event_handler_t pfn;         // Protocol-specific handler function
+  void *pfn_data;                 // Protocol-specific function parameter
+  char data[MG_DATA_SIZE];        // Arbitrary connection data
+  void *tls;                      // TLS specific data
+  unsigned is_listening : 1;      // Listening connection
+  unsigned is_client : 1;         // Outbound (client) connection
+  unsigned is_accepted : 1;       // Accepted (server) connection
+  unsigned is_resolving : 1;      // Non-blocking DNS resolution is in progress
+  unsigned is_arplooking : 1;     // Non-blocking ARP resolution is in progress
+  unsigned is_connecting : 1;     // Non-blocking connect is in progress
+  unsigned is_tls : 1;            // TLS-enabled connection
+  unsigned is_tls_hs : 1;         // TLS handshake is in progress
+  unsigned is_udp : 1;            // UDP connection
+  unsigned is_websocket : 1;      // WebSocket connection
+  unsigned is_mqtt5 : 1;          // For MQTT connection, v5 indicator
+  unsigned is_hexdumping : 1;     // Hexdump in/out traffic
+  unsigned is_draining : 1;       // Send remaining data, then close and free
+  unsigned is_closing : 1;        // Close and free the connection immediately
+  unsigned is_full : 1;           // Stop reads, until cleared
+  unsigned is_tls_throttled : 1;  // Last TLS write: MG_SOCK_PENDING() was true
+  unsigned is_resp : 1;           // Response is still being generated
+  unsigned is_readable : 1;       // Connection is ready to read
+  unsigned is_writable : 1;       // Connection is ready to write
 };
 
 void mg_mgr_poll(struct mg_mgr *, int ms);
@@ -2412,6 +2426,9 @@ struct mg_tls {
 #ifdef MBEDTLS_SSL_SESSION_TICKETS
   mbedtls_ssl_ticket_context ticket;  // Session tickets context
 #endif
+  // https://github.com/Mbed-TLS/mbedtls/blob/3b3c652d/include/mbedtls/ssl.h#L5071C18-L5076C29
+  unsigned char *throttled_buf;  // see #3074
+  size_t throttled_len;
 };
 #endif
 
@@ -2738,6 +2755,35 @@ bool mg_ota_flash_end(struct mg_flash *flash);
 
 
 
+struct mg_wifi_scan_bss_data {
+    struct mg_str SSID;
+    char *BSSID;
+    int16_t RSSI;
+    uint8_t security;
+#define MG_WIFI_SECURITY_OPEN 0
+#define MG_WIFI_SECURITY_WEP  MG_BIT(0)
+#define MG_WIFI_SECURITY_WPA  MG_BIT(1)
+#define MG_WIFI_SECURITY_WPA2 MG_BIT(2)
+#define MG_WIFI_SECURITY_WPA3 MG_BIT(3)
+    uint8_t channel;
+    unsigned band :2;
+#define MG_WIFI_BAND_2G 0
+#define MG_WIFI_BAND_5G 1
+    unsigned has_n :1;
+};
+
+
+bool mg_wifi_scan(void);
+bool mg_wifi_connect(char *ssid, char *pass);
+bool mg_wifi_disconnect(void);
+bool mg_wifi_ap_start(char *ssid, char *pass, unsigned int channel);
+bool mg_wifi_ap_stop(void);
+
+
+
+
+
+
 
 struct mg_tcpip_if;  // Mongoose TCP/IP network interface
 
@@ -2745,20 +2791,24 @@ struct mg_tcpip_driver {
   bool (*init)(struct mg_tcpip_if *);                         // Init driver
   size_t (*tx)(const void *, size_t, struct mg_tcpip_if *);   // Transmit frame
   size_t (*rx)(void *buf, size_t len, struct mg_tcpip_if *);  // Receive frame
-  bool (*up)(struct mg_tcpip_if *);                           // Up/down status
+  bool (*poll)(struct mg_tcpip_if *, bool);  // Poll, return Up/down status
 };
 
 typedef void (*mg_tcpip_event_handler_t)(struct mg_tcpip_if *ifp, int ev,
                                          void *ev_data);
 
 enum {
-  MG_TCPIP_EV_ST_CHG,     // state change             uint8_t * (&ifp->state)
-  MG_TCPIP_EV_DHCP_DNS,   // DHCP DNS assignment      uint32_t *ipaddr
-  MG_TCPIP_EV_DHCP_SNTP,  // DHCP SNTP assignment     uint32_t *ipaddr
-  MG_TCPIP_EV_ARP,        // Got ARP packet           struct mg_str *
-  MG_TCPIP_EV_TIMER_1S,   // 1 second timer           NULL
-  MG_TCPIP_EV_USER        // Starting ID for user events
+  MG_TCPIP_EV_ST_CHG,           // state change                   uint8_t * (&ifp->state)
+  MG_TCPIP_EV_DHCP_DNS,         // DHCP DNS assignment            uint32_t *ipaddr
+  MG_TCPIP_EV_DHCP_SNTP,        // DHCP SNTP assignment           uint32_t *ipaddr
+  MG_TCPIP_EV_ARP,              // Got ARP packet                 struct mg_str *
+  MG_TCPIP_EV_TIMER_1S,         // 1 second timer                 NULL
+  MG_TCPIP_EV_WIFI_SCAN_RESULT, // Wi-Fi scan results             struct mg_wifi_scan_bss_data *
+  MG_TCPIP_EV_WIFI_SCAN_END,    // Wi-Fi scan has finished        NULL
+  MG_TCPIP_EV_WIFI_CONNECT_ERR, // Wi-Fi connect has failed       driver and chip specific
+  MG_TCPIP_EV_USER              // Starting ID for user events
 };
+
 
 // Network interface
 struct mg_tcpip_if {
@@ -2777,6 +2827,7 @@ struct mg_tcpip_if {
   mg_tcpip_event_handler_t fn;     // User-specified event handler function
   struct mg_mgr *mgr;              // Mongoose event manager
   struct mg_queue recv_queue;      // Receive queue
+  char dhcp_name[12];              // Name reported to DHCP, "mip" if unset
   uint16_t mtu;                    // Interface MTU
 #define MG_TCPIP_MTU_DEFAULT 1500
 
@@ -2988,13 +3039,19 @@ bool mg_phy_up(struct mg_phy *, uint8_t addr, bool *full_duplex,
 struct mg_tcpip_driver_pico_w_data {
   char *ssid;
   char *pass;
+  char *apssid;
+  char *appass;
+  uint8_t security; // TBD
+  uint8_t apsecurity; // TBD
+  uint8_t apchannel;
+  bool apmode;      // start in AP mode; 'false' starts connection to 'ssid' if not NULL
 };
 
 #define MG_TCPIP_DRIVER_INIT(mgr)                                 \
   do {                                                            \
     static struct mg_tcpip_driver_pico_w_data driver_data_;       \
     static struct mg_tcpip_if mif_;                               \
-    MG_SET_WIFI_CREDS(&driver_data_.ssid, &driver_data_.pass);    \
+    MG_SET_WIFI_CONFIG(&driver_data_);                            \
     mif_.ip = MG_TCPIP_IP;                                        \
     mif_.mask = MG_TCPIP_MASK;                                    \
     mif_.gw = MG_TCPIP_GW;                                        \

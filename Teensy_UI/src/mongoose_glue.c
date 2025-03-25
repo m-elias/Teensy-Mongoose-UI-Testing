@@ -9,7 +9,8 @@ static uint64_t s_action_timeout_reboot;  // Time when reboot ends
 bool glue_check_reboot(void) {
   return s_action_timeout_reboot > mg_now(); // Return true if reboot is in progress
 }
-void glue_start_reboot(void) {
+void glue_start_reboot(struct mg_str params) {
+  MG_DEBUG(("Passed parameters: [%.*s]", params.len, params.buf));
   s_action_timeout_reboot = mg_now() + 1000; // Start reboot, finish after 1 second
 }
 
@@ -17,7 +18,8 @@ static uint64_t s_action_timeout_dec_work_thres;  // Time when dec_work_thres en
 bool glue_check_dec_work_thres(void) {
   return s_action_timeout_dec_work_thres > mg_now(); // Return true if dec_work_thres is in progress
 }
-void glue_start_dec_work_thres(void) {
+void glue_start_dec_work_thres(struct mg_str params) {
+  MG_DEBUG(("Passed parameters: [%.*s]", params.len, params.buf));
   s_action_timeout_dec_work_thres = mg_now() + 1000; // Start dec_work_thres, finish after 1 second
 }
 
@@ -25,7 +27,8 @@ static uint64_t s_action_timeout_inc_work_thres;  // Time when inc_work_thres en
 bool glue_check_inc_work_thres(void) {
   return s_action_timeout_inc_work_thres > mg_now(); // Return true if inc_work_thres is in progress
 }
-void glue_start_inc_work_thres(void) {
+void glue_start_inc_work_thres(struct mg_str params) {
+  MG_DEBUG(("Passed parameters: [%.*s]", params.len, params.buf));
   s_action_timeout_inc_work_thres = mg_now() + 1000; // Start inc_work_thres, finish after 1 second
 }
 
@@ -33,7 +36,8 @@ static uint64_t s_action_timeout_set_work_thres;  // Time when set_work_thres en
 bool glue_check_set_work_thres(void) {
   return s_action_timeout_set_work_thres > mg_now(); // Return true if set_work_thres is in progress
 }
-void glue_start_set_work_thres(void) {
+void glue_start_set_work_thres(struct mg_str params) {
+  MG_DEBUG(("Passed parameters: [%.*s]", params.len, params.buf));
   s_action_timeout_set_work_thres = mg_now() + 1000; // Start set_work_thres, finish after 1 second
 }
 
@@ -41,7 +45,8 @@ static uint64_t s_action_timeout_set_work_digital;  // Time when set_work_digita
 bool glue_check_set_work_digital(void) {
   return s_action_timeout_set_work_digital > mg_now(); // Return true if set_work_digital is in progress
 }
-void glue_start_set_work_digital(void) {
+void glue_start_set_work_digital(struct mg_str params) {
+  MG_DEBUG(("Passed parameters: [%.*s]", params.len, params.buf));
   s_action_timeout_set_work_digital = mg_now() + 1000; // Start set_work_digital, finish after 1 second
 }
 
@@ -67,7 +72,7 @@ void glue_set_comms(struct comms *data) {
   s_comms = *data; // Sync with your device
 }
 
-static struct inputs s_inputs = {5, 5, 50, true, 50, "18", 18, 5, 3, "1 - AOG Setting (default)"};
+static struct inputs s_inputs = {-1, 5, 50, true, 50, "18", 18, 5, 3, "1 - AOG Setting (default)"};
 void glue_get_inputs(struct inputs *data) {
   *data = s_inputs;  // Sync with your device
 }

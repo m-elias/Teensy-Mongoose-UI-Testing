@@ -28,44 +28,8 @@ void checkMiscTimer()
 void USB_Data_Check()
 {
   if (Serial.available()) {
-    uint8_t sRead = Serial.read();
-    struct inputs input_vars;
+    /*uint8_t sRead = */Serial.read();
 
-    if (sRead == 's') {   // toggle Steer input UI elements visible/hidden
-      glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.steerState = !input_vars.steerState;
-      glue_set_inputs(&input_vars); // push-sync to UI
-    }
-
-    if (sRead == 'k') {   // toggle Kickout input UI elements visible/hidden
-      glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.kickoutState = !input_vars.kickoutState;
-      glue_set_inputs(&input_vars); // push-sync to UI
-    }
-
-    if (sRead == 'w') {   // toggle Work input UI elements visible/hidden
-      glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.workState = !input_vars.workState;
-      glue_set_inputs(&input_vars); // push-sync to UI
-    }
-
-    if (sRead == 'i') {
-      glue_get_inputs(&input_vars); // pull-sync from UI
-      input_vars.workInvert = !input_vars.workInvert;
-      glue_set_inputs(&input_vars); // push-sync to UI
-    }
-
-    if (sRead == 'h') {
-      glue_get_inputs(&input_vars); // pull-sync from UI
-      memcpy(input_vars.workHystStr, "6", 2);
-      glue_set_inputs(&input_vars); // push-sync to UI
-    }
-
-    if (sRead == 'd') {
-      glue_start_set_work_digital();
-    }
-
-    glue_update_state();
   }
 }
 

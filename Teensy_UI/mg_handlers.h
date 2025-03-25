@@ -23,18 +23,31 @@ const char* ko_help[6] = {
     "Set AOG to \"Pressure Sensor\". *Need more instructions*"
 };
 
+// Update help text in Outputs-Section/Machine panel according to option selected in dropdown
+const char* outputs_help[4] = {
+    "Unknown option/error.",
+    "(6) HIGH or LOW outputs",
+    "(3) pairs of Bidirectional DC Motor outputs",
+    "(3) pairs of Three Wire Ball Valve outputs"
+};
+
 static void ws_200(struct mg_connection *c) {    // || oldKickoutMode != inputs_local.kickoutModeStr[0]
   //static uint8_t oldKickoutMode = 0;
   struct inputs inputs_local;
   glue_get_inputs(&inputs_local);
-
   // check first char of dropdown's selected option to match displayed help text
   uint8_t koSelection = inputs_local.kickoutModeStr[0] - '0';
   const char* ko_help_selected = ko_help[koSelection];
-
   //MG_INFO((inputs_local.kickoutModeStr));
   mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("kickout_dropdown_help"), MG_ESC((ko_help_selected)));
   //oldKickoutMode = inputs_local.kickoutModeStr[0];
+
+
+  struct outputs outputs_local;
+  glue_get_outputs(&outputs_local);
+  uint8_t outSelection = outputs_local.outputsModeStr[0] - '0';
+  const char* outputs_help_selected = outputs_help[outSelection];
+  mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m: %m}", MG_ESC("outputs_dropdown_help"), MG_ESC((outputs_help_selected)));
 }
 
 

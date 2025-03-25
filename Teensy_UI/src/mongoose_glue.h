@@ -67,19 +67,19 @@ void glue_update_state(void);
 
 // Firmware Glue
 
-void glue_start_reboot(void);  // Start an action
+void glue_start_reboot(struct mg_str);  // Start an action
 bool glue_check_reboot(void);  // Check if action is still in progress
 
-void glue_start_dec_work_thres(void);  // Start an action
+void glue_start_dec_work_thres(struct mg_str);  // Start an action
 bool glue_check_dec_work_thres(void);  // Check if action is still in progress
 
-void glue_start_inc_work_thres(void);  // Start an action
+void glue_start_inc_work_thres(struct mg_str);  // Start an action
 bool glue_check_inc_work_thres(void);  // Check if action is still in progress
 
-void glue_start_set_work_thres(void);  // Start an action
+void glue_start_set_work_thres(struct mg_str);  // Start an action
 bool glue_check_set_work_thres(void);  // Check if action is still in progress
 
-void glue_start_set_work_digital(void);  // Start an action
+void glue_start_set_work_digital(struct mg_str);  // Start an action
 bool glue_check_set_work_digital(void);  // Check if action is still in progress
 
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);
@@ -87,11 +87,11 @@ bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
 
 struct comms {
-  int keyaState;
+  int keyaState;  // -1: Show all elements, 0: Timed Out, 1: Active, 2: Missed Updates, 3: Undetected, 4: Disabled by User, 5: Disabled by Hardware (hidden)
   char keyaPort[15];
-  char keyaBaud[10];
-  int ntripState;
-  int rtkState;
+  char keyaBaud[10];  // if DISABLED is selected, set [device]State = 4
+  int ntripState;  // does not parse data, only detects that there is some data
+  int rtkState;  // does not parse data, only detects that there is some data
   char rtkBaud[10];
   int rs232State;
   char rs232Baud[10];
