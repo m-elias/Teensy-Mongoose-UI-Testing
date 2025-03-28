@@ -50,6 +50,15 @@ void glue_start_set_work_digital(struct mg_str params) {
   s_action_timeout_set_work_digital = mg_now() + 1000; // Start set_work_digital, finish after 1 second
 }
 
+static uint64_t s_action_timeout_cycleOutput;  // Time when cycleOutput ends
+bool glue_check_cycleOutput(void) {
+  return s_action_timeout_cycleOutput > mg_now(); // Return true if cycleOutput is in progress
+}
+void glue_start_cycleOutput(struct mg_str params) {
+  MG_DEBUG(("Passed parameters: [%.*s]", params.len, params.buf));
+  s_action_timeout_cycleOutput = mg_now() + 1000; // Start cycleOutput, finish after 1 second
+}
+
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
   bool ok = mg_ota_begin(total_size);
   MG_DEBUG(("%s size %lu, ok: %d", file_name, total_size, ok));
@@ -64,7 +73,7 @@ bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {6, "1 - Pin 16/17", "250000", 6, 6, "115200", 6, "57600", "AgOpenGPS", 6, 6, "921600", "921600", false, "60ms - F9P", 6, 6, "460800", "0d 0h 0m 0s", 12, "**SSID**", "**PW**", false};
+static struct comms s_comms = {"921600", -1, "921600", -1, false, "60ms - F9P", -1, "57600", -1, "AgOpenGPS", "115200", -1, "250000", -1, "1 - Pin 16/17", false, "460800", -1, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", -1};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -72,7 +81,7 @@ void glue_set_comms(struct comms *data) {
   s_comms = *data; // Sync with your device
 }
 
-static struct inputs s_inputs = {-1, 5, 50, true, 50, "18", 18, 5, 3, "1 - AOG Setting (default)"};
+static struct inputs s_inputs = {50, 50, "18", 18, true, -1, "*from AOG*", -1, true, -1, -1, true, -1, -1, "1 - AOG Setting (default)"};
 void glue_get_inputs(struct inputs *data) {
   *data = s_inputs;  // Sync with your device
 }
@@ -86,7 +95,7 @@ void glue_reply_inputsKickoutModeList(struct mg_connection *c, struct mg_http_me
   (void) hm;
   mg_http_reply(c, 200, headers, "%s\n", value);
 }
-static struct outputs s_outputs = {"shoutld change"};
+static struct outputs s_outputs = {"shoutld change", "1 - Single Ended", 0, 1, 4, 4, 0, 1, false, true, false, false, false, false, 0, 0, -1, -1, 0, 1, "7", "8", "9", "10", "11", "12"};
 void glue_get_outputs(struct outputs *data) {
   *data = s_outputs;  // Sync with your device
 }

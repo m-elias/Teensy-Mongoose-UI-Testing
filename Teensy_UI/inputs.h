@@ -59,7 +59,7 @@ void checkInputsTimer()
     }
     //Serial.printf("Steer Enabled: %i\r\n", input_vars.steerState);
 
-    if (input_vars.workInvert) read = 100 - read;  // option to invert input polarity
+    //if (input_vars.workInvert) read = 100 - read;  // option to invert input polarity
 
     input_vars.workHystVal = atoi(input_vars.workHystStr);
     static bool workState = 0;
@@ -70,8 +70,8 @@ void checkInputsTimer()
       workState = HIGH;
     }
 
-    input_vars.workState = workState;
-    //input_vars.work_state = (!workState != !input_vars.work_invert);  // 2nd option to invert, XOR the work state logic with invert setting
+    //input_vars.workState = workState;
+    input_vars.workState = (!workState != !input_vars.workInvert);  // 2nd option to invert, XOR the work state logic with invert setting
     
     input_vars.workInput = max(min(round(read), 100), 0);  // limit betwwen 0 - 100
 

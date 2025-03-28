@@ -43,6 +43,8 @@ static void ws_200(struct mg_connection *c) {    // || oldKickoutMode != inputs_
   //oldKickoutMode = inputs_local.kickoutModeStr[0];
 
 
+  // if no change, skip sending WS update?
+  // or restructure, https://discord.com/channels/1194962781745709128/1194962781745709131/1353767399526109304
   struct outputs outputs_local;
   glue_get_outputs(&outputs_local);
   uint8_t outSelection = outputs_local.outputsModeStr[0] - '0';

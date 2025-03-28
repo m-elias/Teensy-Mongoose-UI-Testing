@@ -108,39 +108,44 @@ struct apihandler_array {
 };
 
 struct attribute s_comms_attributes[] = {
-  {"keyaState", "int", NULL, offsetof(struct comms, keyaState), 0, false},
-  {"keyaPort", "string", NULL, offsetof(struct comms, keyaPort), 15, false},
-  {"keyaBaud", "string", NULL, offsetof(struct comms, keyaBaud), 10, false},
-  {"ntripState", "int", NULL, offsetof(struct comms, ntripState), 0, false},
-  {"rtkState", "int", NULL, offsetof(struct comms, rtkState), 0, false},
-  {"rtkBaud", "string", NULL, offsetof(struct comms, rtkBaud), 10, false},
-  {"rs232State", "int", NULL, offsetof(struct comms, rs232State), 0, false},
-  {"rs232Baud", "string", NULL, offsetof(struct comms, rs232Baud), 10, false},
-  {"nmeaSource", "string", NULL, offsetof(struct comms, nmeaSource), 10, false},
-  {"gps1State", "int", NULL, offsetof(struct comms, gps1State), 0, false},
-  {"gps2State", "int", NULL, offsetof(struct comms, gps2State), 0, false},
   {"gps1Baud", "string", NULL, offsetof(struct comms, gps1Baud), 10, false},
+  {"gps1State", "int", NULL, offsetof(struct comms, gps1State), 0, false},
   {"gps2Baud", "string", NULL, offsetof(struct comms, gps2Baud), 10, false},
+  {"gps2State", "int", NULL, offsetof(struct comms, gps2State), 0, false},
   {"gpsPass", "bool", NULL, offsetof(struct comms, gpsPass), 0, false},
   {"gpsSync", "string", NULL, offsetof(struct comms, gpsSync), 15, false},
   {"imuState", "int", NULL, offsetof(struct comms, imuState), 0, false},
-  {"esp32State", "int", NULL, offsetof(struct comms, esp32State), 0, false},
+  {"rs232Baud", "string", NULL, offsetof(struct comms, rs232Baud), 10, false},
+  {"rs232State", "int", NULL, offsetof(struct comms, rs232State), 0, false},
+  {"nmeaSource", "string", NULL, offsetof(struct comms, nmeaSource), 10, false},
+  {"rtkBaud", "string", NULL, offsetof(struct comms, rtkBaud), 10, false},
+  {"rtkState", "int", NULL, offsetof(struct comms, rtkState), 0, false},
+  {"keyaBaud", "string", NULL, offsetof(struct comms, keyaBaud), 10, false},
+  {"keyaState", "int", NULL, offsetof(struct comms, keyaState), 0, false},
+  {"keyaPort", "string", NULL, offsetof(struct comms, keyaPort), 15, false},
+  {"esp32BridgeEnabled", "bool", NULL, offsetof(struct comms, esp32BridgeEnabled), 0, false},
   {"esp32Baud", "string", NULL, offsetof(struct comms, esp32Baud), 10, false},
+  {"esp32State", "int", NULL, offsetof(struct comms, esp32State), 0, false},
   {"esp32Runtime", "string", NULL, offsetof(struct comms, esp32Runtime), 20, false},
   {"esp32NumClients", "int", NULL, offsetof(struct comms, esp32NumClients), 0, false},
   {"esp32SSID", "string", NULL, offsetof(struct comms, esp32SSID), 24, false},
   {"esp32PW", "string", NULL, offsetof(struct comms, esp32PW), 24, false},
-  {"esp32BridgeEnabled", "bool", NULL, offsetof(struct comms, esp32BridgeEnabled), 0, false},
+  {"ntripState", "int", NULL, offsetof(struct comms, ntripState), 0, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_inputs_attributes[] = {
-  {"steerState", "int", NULL, offsetof(struct inputs, steerState), 0, false},
-  {"workState", "int", NULL, offsetof(struct inputs, workState), 0, false},
   {"workInput", "int", NULL, offsetof(struct inputs, workInput), 0, false},
-  {"workInvert", "bool", NULL, offsetof(struct inputs, workInvert), 0, false},
   {"workThres", "int", NULL, offsetof(struct inputs, workThres), 0, false},
   {"workHystStr", "string", NULL, offsetof(struct inputs, workHystStr), 3, false},
   {"workHystVal", "int", NULL, offsetof(struct inputs, workHystVal), 0, false},
+  {"workInvert", "bool", NULL, offsetof(struct inputs, workInvert), 0, false},
+  {"workState", "int", NULL, offsetof(struct inputs, workState), 0, false},
+  {"steerSelection", "string", NULL, offsetof(struct inputs, steerSelection), 10, false},
+  {"steerInput", "int", NULL, offsetof(struct inputs, steerInput), 0, false},
+  {"steerInvert", "bool", NULL, offsetof(struct inputs, steerInvert), 0, false},
+  {"steerState", "int", NULL, offsetof(struct inputs, steerState), 0, false},
+  {"kickoutInput", "int", NULL, offsetof(struct inputs, kickoutInput), 0, false},
+  {"kickoutInvert", "bool", NULL, offsetof(struct inputs, kickoutInvert), 0, false},
   {"kickoutState", "int", NULL, offsetof(struct inputs, kickoutState), 0, false},
   {"kickoutStateHist", "int", NULL, offsetof(struct inputs, kickoutStateHist), 0, false},
   {"kickoutModeStr", "string", NULL, offsetof(struct inputs, kickoutModeStr), 30, false},
@@ -148,6 +153,31 @@ struct attribute s_inputs_attributes[] = {
 };
 struct attribute s_outputs_attributes[] = {
   {"drv8701PwmFreq", "string", NULL, offsetof(struct outputs, drv8701PwmFreq), 20, false},
+  {"outputsModeStr", "string", NULL, offsetof(struct outputs, outputsModeStr), 20, false},
+  {"sec1State", "int", NULL, offsetof(struct outputs, sec1State), 0, false},
+  {"sec2State", "int", NULL, offsetof(struct outputs, sec2State), 0, false},
+  {"sec3State", "int", NULL, offsetof(struct outputs, sec3State), 0, false},
+  {"sec4State", "int", NULL, offsetof(struct outputs, sec4State), 0, false},
+  {"sec5State", "int", NULL, offsetof(struct outputs, sec5State), 0, false},
+  {"sec6State", "int", NULL, offsetof(struct outputs, sec6State), 0, false},
+  {"sec1Invert", "bool", NULL, offsetof(struct outputs, sec1Invert), 0, false},
+  {"sec2Invert", "bool", NULL, offsetof(struct outputs, sec2Invert), 0, false},
+  {"sec3Invert", "bool", NULL, offsetof(struct outputs, sec3Invert), 0, false},
+  {"sec4Invert", "bool", NULL, offsetof(struct outputs, sec4Invert), 0, false},
+  {"sec5Invert", "bool", NULL, offsetof(struct outputs, sec5Invert), 0, false},
+  {"sec6Invert", "bool", NULL, offsetof(struct outputs, sec6Invert), 0, false},
+  {"sec1Output", "int", NULL, offsetof(struct outputs, sec1Output), 0, false},
+  {"sec2Output", "int", NULL, offsetof(struct outputs, sec2Output), 0, false},
+  {"sec3Output", "int", NULL, offsetof(struct outputs, sec3Output), 0, false},
+  {"sec4Output", "int", NULL, offsetof(struct outputs, sec4Output), 0, false},
+  {"sec5Output", "int", NULL, offsetof(struct outputs, sec5Output), 0, false},
+  {"sec6Output", "int", NULL, offsetof(struct outputs, sec6Output), 0, false},
+  {"sec1PinsStr", "string", NULL, offsetof(struct outputs, sec1PinsStr), 6, false},
+  {"sec2PinsStr", "string", NULL, offsetof(struct outputs, sec2PinsStr), 6, false},
+  {"sec3PinsStr", "string", NULL, offsetof(struct outputs, sec3PinsStr), 6, false},
+  {"sec4PinsStr", "string", NULL, offsetof(struct outputs, sec4PinsStr), 6, false},
+  {"sec5PinsStr", "string", NULL, offsetof(struct outputs, sec5PinsStr), 6, false},
+  {"sec6PinsStr", "string", NULL, offsetof(struct outputs, sec6PinsStr), 6, false},
   {NULL, NULL, NULL, 0, 0, false}
 };
 struct attribute s_misc_attributes[] = {
@@ -162,6 +192,7 @@ struct apihandler_action s_apihandler_dec_work_thres = {{"dec_work_thres", "acti
 struct apihandler_action s_apihandler_inc_work_thres = {{"inc_work_thres", "action", false, 3, 7, 0UL}, glue_check_inc_work_thres, glue_start_inc_work_thres};
 struct apihandler_action s_apihandler_set_work_thres = {{"set_work_thres", "action", false, 3, 7, 0UL}, glue_check_set_work_thres, glue_start_set_work_thres};
 struct apihandler_action s_apihandler_set_work_digital = {{"set_work_digital", "action", false, 3, 7, 0UL}, glue_check_set_work_digital, glue_start_set_work_digital};
+struct apihandler_action s_apihandler_cycleOutput = {{"cycleOutput", "action", false, 3, 7, 0UL}, glue_check_cycleOutput, glue_start_cycleOutput};
 struct apihandler_ota s_apihandler_firmware_update = {{"firmware_update", "ota", false, 3, 7, 0UL}, glue_ota_begin_firmware_update, glue_ota_end_firmware_update, glue_ota_write_firmware_update};
 struct apihandler_data s_apihandler_comms = {{"comms", "data", false, 3, 7, 0UL}, s_comms_attributes, sizeof(struct comms), (void (*)(void *)) glue_get_comms, (void (*)(void *)) glue_set_comms};
 struct apihandler_data s_apihandler_inputs = {{"inputs", "data", false, 3, 7, 0UL}, s_inputs_attributes, sizeof(struct inputs), (void (*)(void *)) glue_get_inputs, (void (*)(void *)) glue_set_inputs};
@@ -176,6 +207,7 @@ static struct apihandler *s_apihandlers[] = {
   (struct apihandler *) &s_apihandler_inc_work_thres,
   (struct apihandler *) &s_apihandler_set_work_thres,
   (struct apihandler *) &s_apihandler_set_work_digital,
+  (struct apihandler *) &s_apihandler_cycleOutput,
   (struct apihandler *) &s_apihandler_firmware_update,
   (struct apihandler *) &s_apihandler_comms,
   (struct apihandler *) &s_apihandler_inputs,

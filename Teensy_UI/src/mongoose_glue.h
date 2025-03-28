@@ -82,46 +82,54 @@ bool glue_check_set_work_thres(void);  // Check if action is still in progress
 void glue_start_set_work_digital(struct mg_str);  // Start an action
 bool glue_check_set_work_digital(void);  // Check if action is still in progress
 
+void glue_start_cycleOutput(struct mg_str);  // Start an action
+bool glue_check_cycleOutput(void);  // Check if action is still in progress
+
 void *glue_ota_begin_firmware_update(char *file_name, size_t total_size);
 bool glue_ota_end_firmware_update(void *context);
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len);
 
 struct comms {
-  int keyaState;  // -1: Show all elements, 0: Timed Out, 1: Active, 2: Missed Updates, 3: Undetected, 4: Disabled by User, 5: Disabled by Hardware (hidden)
-  char keyaPort[15];
-  char keyaBaud[10];  // if DISABLED is selected, set [device]State = 4
-  int ntripState;  // does not parse data, only detects that there is some data
-  int rtkState;  // does not parse data, only detects that there is some data
-  char rtkBaud[10];
-  int rs232State;
-  char rs232Baud[10];
-  char nmeaSource[10];
-  int gps1State;
-  int gps2State;
   char gps1Baud[10];
+  int gps1State;
   char gps2Baud[10];
+  int gps2State;
   bool gpsPass;
   char gpsSync[15];
   int imuState;
-  int esp32State;
+  char rs232Baud[10];
+  int rs232State;
+  char nmeaSource[10];
+  char rtkBaud[10];
+  int rtkState;  // does not parse data, only detects that there is some data
+  char keyaBaud[10];  // if DISABLED is selected, set [device]State = 4
+  int keyaState;  // -1: Show all elements, 0: Timed Out, 1: Active, 2: Missed Updates, 3: Undetected, 4: Disabled by User, 5: Disabled by Hardware (hidden)
+  char keyaPort[15];
+  bool esp32BridgeEnabled;
   char esp32Baud[10];
+  int esp32State;
   char esp32Runtime[20];
   int esp32NumClients;
   char esp32SSID[24];
   char esp32PW[24];
-  bool esp32BridgeEnabled;
+  int ntripState;  // does not parse data, only detects that there is some data
 };
 void glue_get_comms(struct comms *);
 void glue_set_comms(struct comms *);
 
 struct inputs {
-  int steerState;
-  int workState;
   int workInput;
-  bool workInvert;
   int workThres;
   char workHystStr[3];
   int workHystVal;
+  bool workInvert;
+  int workState;
+  char steerSelection[10];
+  int steerInput;
+  bool steerInvert;
+  int steerState;  // -1: Show all elements, 0: Timed Out, 1: Active, 2: Missed Updates, 3: Undetected, 4: Disabled by User, 5: Disabled by Hardware (hidden)
+  int kickoutInput;
+  bool kickoutInvert;
   int kickoutState;
   int kickoutStateHist;
   char kickoutModeStr[30];
@@ -132,6 +140,31 @@ void glue_set_inputs(struct inputs *);
 void glue_reply_inputsKickoutModeList(struct mg_connection *, struct mg_http_message *);
 struct outputs {
   char drv8701PwmFreq[20];
+  char outputsModeStr[20];
+  int sec1State;
+  int sec2State;
+  int sec3State;
+  int sec4State;
+  int sec5State;
+  int sec6State;
+  bool sec1Invert;
+  bool sec2Invert;
+  bool sec3Invert;
+  bool sec4Invert;
+  bool sec5Invert;
+  bool sec6Invert;
+  int sec1Output;
+  int sec2Output;
+  int sec3Output;
+  int sec4Output;
+  int sec5Output;
+  int sec6Output;
+  char sec1PinsStr[6];
+  char sec2PinsStr[6];
+  char sec3PinsStr[6];
+  char sec4PinsStr[6];
+  char sec5PinsStr[6];
+  char sec6PinsStr[6];
 };
 void glue_get_outputs(struct outputs *);
 void glue_set_outputs(struct outputs *);
