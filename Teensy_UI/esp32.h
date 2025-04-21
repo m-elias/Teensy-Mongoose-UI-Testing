@@ -8,11 +8,11 @@ elapsedMillis esp32ElapsedUpdateTime;
 void esp32DataCheck()
 {
 
-  struct comms comms_vars;
-  glue_get_comms(&comms_vars); // pull-sync from UI
+  struct comms comms_temp;
+  glue_get_comms(&comms_temp); // pull-sync from UI
   if (SerialESP32.available())
   {
-    if (comms_vars.esp32BridgeEnabled) {
+    if (comms_temp.esp32BridgeEnabled) {
       static uint8_t incomingBytes[50];
       static uint8_t incomingIndex;
       incomingBytes[incomingIndex] = SerialESP32.read();
@@ -49,7 +49,7 @@ void esp32DataCheck()
             //uint16_t esp32m2mPort = (incomingBytes[11] << 8) + incomingBytes[10];
             //Serial.printf("M2M Port: %i\r\n", esp32m2mPort);
 
-            comms_vars.esp32State = 1;
+            comms_temp.esp32State = 1;
 
             esp32Runtime /= 1000;
             
@@ -67,10 +67,10 @@ void esp32DataCheck()
             char esp32RuntimeStr[20];
             sprintf(esp32RuntimeStr, "%id %ih %im %is", days, hrs, mins, secs);
             //Serial.printf("ESP32 Runtime: %s\r\n", esp32RuntimeStr);
-            strcpy(comms_vars.esp32Runtime, esp32RuntimeStr);
+            strcpy(comms_temp.esp32Runtime, esp32RuntimeStr);
             
-            comms_vars.esp32NumClients = esp32NumClients;
-            glue_set_comms(&comms_vars);
+            comms_temp.esp32NumClients = esp32NumClients;
+            glue_set_comms(&comms_temp);
             esp32ElapsedUpdateTime = 0;
             glue_update_state();
           }
@@ -84,7 +84,7 @@ void esp32DataCheck()
               str[i] = incomingBytes[i+5];  // only copy non 0 chars, 0 denotes end of char strings
             }
             //Serial.println(str);
-            memcpy(comms_vars.esp32SSID, str, 24);    // copy to UI string
+            memcpy(comms_temp.esp32SSID, str, 24);    // copy to UI string
 
             memset(str,'\0', sizeof(str));  // zero out and repeat for password
             for (uint8_t i = 0; i < 24 && incomingBytes[i+5+24] != 0; i++) {
@@ -92,9 +92,9 @@ void esp32DataCheck()
             }
             if (str[0] == 0) memcpy(str, "**blank**\0", 10);  // detect blank/empty password and indicate accordingly
             //Serial.println(str);
-            memcpy(comms_vars.esp32PW, str, 24);
+            memcpy(comms_temp.esp32PW, str, 24);
 
-            glue_set_comms(&comms_vars);
+            glue_set_comms(&comms_temp);
             glue_update_state();
 
           // all other properly formed PGNs forwarded to AgIO
@@ -126,7 +126,7 @@ void esp32DataCheck()
     } else {  // if esp32 bridge is NOT enabled, just dump the data (empty the buffer)
       SerialESP32.read();
       esp32ElapsedUpdateTime = 0;
-      comms_vars.esp32State = 4;
+      comms_temp.esp32State = 4;
     }
   } // end if (SerialESP32.available())
 

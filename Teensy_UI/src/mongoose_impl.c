@@ -40,6 +40,14 @@
   "4hf5Gx17YJkq5/z3k6ogPDPpoAYWIw1/sw==\n"                             \
   "-----END EC PRIVATE KEY-----\n"
 
+typedef void (*mongoose_data_func_t)(void *);
+typedef bool (*mongoose_action_checker_t)(void);
+typedef void (*mongoose_action_starter_t)(struct mg_str);
+typedef void *(*mongoose_ota_opener_t)(char *, size_t);
+typedef bool (*mongoose_ota_closer_t)(void *);
+typedef bool (*mongoose_ota_writer_t)(void *, void *, size_t);
+typedef void (*mongoose_custom_reply_t)(struct mg_connection *, struct mg_http_message *);
+
 struct mg_mgr g_mgr;  // Mongoose event manager
 
 #if WIZARD_ENABLE_HTTP || WIZARD_ENABLE_HTTPS
@@ -114,6 +122,7 @@ struct attribute s_comms_attributes[] = {
   {"gps2State", "int", NULL, offsetof(struct comms, gps2State), 0, false},
   {"gpsPass", "bool", NULL, offsetof(struct comms, gpsPass), 0, false},
   {"gpsSync", "string", NULL, offsetof(struct comms, gpsSync), 15, false},
+  {"imuBaud", "string", NULL, offsetof(struct comms, imuBaud), 10, false},
   {"imuState", "int", NULL, offsetof(struct comms, imuState), 0, false},
   {"rs232Baud", "string", NULL, offsetof(struct comms, rs232Baud), 10, false},
   {"rs232State", "int", NULL, offsetof(struct comms, rs232State), 0, false},
@@ -253,21 +262,21 @@ void mongoose_set_http_handlers(const char *name, ...) {
   if (h == NULL) {
     MG_ERROR(("No API with name [%s]", name));
   } else if (strcmp(h->type, "data") == 0) {
-    ((struct apihandler_data *) h)->getter = va_arg(ap, void (*)(void *));
-    ((struct apihandler_data *) h)->setter = va_arg(ap, void (*)(void *));
+    ((struct apihandler_data *) h)->getter = va_arg(ap, mongoose_data_func_t);
+    ((struct apihandler_data *) h)->setter = va_arg(ap, mongoose_data_func_t);
   } else if (strcmp(h->type, "action") == 0) {
-    ((struct apihandler_action *) h)->checker = va_arg(ap, bool (*)(void));
+    ((struct apihandler_action *) h)->checker = va_arg(ap, mongoose_action_checker_t);
     ((struct apihandler_action *) h)->starter =
-        va_arg(ap, void (*)(struct mg_str));
+        va_arg(ap, mongoose_action_starter_t);
   } else if (strcmp(h->type, "ota") == 0 || strcmp(h->type, "upload") == 0) {
     ((struct apihandler_ota *) h)->opener =
-        va_arg(ap, void *(*) (char *, size_t));
-    ((struct apihandler_ota *) h)->closer = va_arg(ap, bool (*)(void *));
+        va_arg(ap, mongoose_ota_opener_t);
+    ((struct apihandler_ota *) h)->closer = va_arg(ap, mongoose_ota_closer_t);
     ((struct apihandler_ota *) h)->writer =
-        va_arg(ap, bool (*)(void *, void *, size_t));
+        va_arg(ap, mongoose_ota_writer_t);
   } else if (strcmp(h->type, "custom") == 0) {
     ((struct apihandler_custom *) h)->reply =
-        va_arg(ap, void (*)(struct mg_connection *, struct mg_http_message *));
+        va_arg(ap, mongoose_custom_reply_t);
   } else {
     MG_ERROR(("Setting [%s] failed: not implemented", name));
   }
@@ -323,8 +332,8 @@ static void handle_login(struct mg_connection *c, struct user *u) {
               "Set-Cookie: access_token=%s; Path=/; "
               "%sHttpOnly; SameSite=Lax; Max-Age=%d\r\n",
               u->token, c->is_tls ? "Secure; " : "", 3600 * 24);
-  mg_http_reply(c, 200, cookie, "{%m:%m,%m:%d}",  //
-                MG_ESC("user"), MG_ESC(u->name),  //
+  mg_http_reply(c, 200, cookie, "{%m:%m,%m:%d}\n",  //
+                MG_ESC("user"), MG_ESC(u->name),    //
                 MG_ESC("level"), u->level);
 }
 
@@ -647,14 +656,8 @@ static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
       mg_http_reply(c, 200, "", ":)\n");
 #endif  // WIZARD_ENABLE_HTTP_UI
     }
-    // Show this request
-    MG_DEBUG(("%lu %.*s %.*s %lu -> %.*s %lu", c->id, hm->method.len,
-              hm->method.buf, hm->uri.len, hm->uri.buf, hm->body.len,
-              c->send.len > 15 ? 3 : 0, &c->send.buf[9], c->send.len));
-  } else if (ev == MG_EV_WS_MSG) {
-    // Got websocket frame. Received data is wm->data
-    struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
-    mg_ws_send(c, wm->data.buf, wm->data.len, WEBSOCKET_OP_TEXT);
+  } else if (ev == MG_EV_WS_MSG || ev == MG_EV_WS_CTL) {
+    // Ignore received data
   } else if (ev == MG_EV_ACCEPT) {
     if (c->fn_data != NULL) {  // TLS listener
       struct mg_tls_opts opts;
@@ -662,6 +665,18 @@ static void http_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
       opts.cert = mg_str(TLS_CERT);
       opts.key = mg_str(TLS_KEY);
       mg_tls_init(c, &opts);
+    }
+  }
+
+  if (ev == MG_EV_HTTP_MSG) {
+    // Show this request
+    struct mg_http_message *hm = (struct mg_http_message *) ev_data;
+    MG_DEBUG(("%lu %.*s %.*s %lu -> %.*s %lu", c->id, hm->method.len,
+              hm->method.buf, hm->uri.len, hm->uri.buf, hm->body.len,
+              c->send.len > 15 ? 3 : 0, &c->send.buf[9], c->send.len));
+    if (c->data[0] == 'Z') {
+      c->data[0] = 0;
+      c->is_resp = 0;
     }
   }
 }
@@ -724,14 +739,14 @@ static void sntp_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
     uint64_t t = *(uint64_t *) ev_data;
     glue_sntp_on_time(t);
     s_sntp_response_received = true;
-    s_sntp_timer += (WIZARD_SNTP_INTERVAL_SECONDS) *1000;
+    s_sntp_timer += (WIZARD_SNTP_INTERVAL_SECONDS) * 1000;
   }
   (void) c;
 }
 
 static void sntp_timer(void *param) {
   // uint64_t t1 = mg_now(), t2 = mg_millis();
-  uint64_t timeout = (WIZARD_SNTP_INTERVAL_SECONDS) *1000;
+  uint64_t timeout = (WIZARD_SNTP_INTERVAL_SECONDS) * 1000;
   if (s_sntp_response_received == false) timeout = 1000;
   // This function is called every second. Once we received a response,
   // trigger SNTP sync less frequently, as set by the define
@@ -742,33 +757,47 @@ static void sntp_timer(void *param) {
 #endif  // WIZARD_ENABLE_SNTP
 
 #if WIZARD_ENABLE_MQTT
+static struct mongoose_mqtt_handlers s_mqtt_handlers = {
+    glue_mqtt_connect, glue_mqtt_tls_init, glue_mqtt_on_connect,
+    glue_mqtt_on_message, glue_mqtt_on_cmd};
+
 struct mg_connection *g_mqtt_conn;  // MQTT client connection
 
 static void mqtt_event_handler(struct mg_connection *c, int ev, void *ev_data) {
   if (ev == MG_EV_CONNECT) {
-    glue_mqtt_tls_init(c);
+    s_mqtt_handlers.tls_init_fn(c);
   } else if (ev == MG_EV_MQTT_OPEN) {
-    glue_mqtt_on_connect(c, *(int *) ev_data);
+    s_mqtt_handlers.on_connect_fn(c, *(int *) ev_data);
   } else if (ev == MG_EV_MQTT_CMD) {
-    glue_mqtt_on_cmd(c, ev_data);
+    s_mqtt_handlers.on_cmd_fn(c, ev_data);
   } else if (ev == MG_EV_MQTT_MSG) {
     struct mg_mqtt_message *mm = (struct mg_mqtt_message *) ev_data;
-    glue_mqtt_on_message(c, mm->topic, mm->data);
+    s_mqtt_handlers.on_message_fn(c, mm->topic, mm->data);
   } else if (ev == MG_EV_CLOSE) {
-    MG_DEBUG(("%lu Closing", c->id));
     g_mqtt_conn = NULL;
   }
 }
 
 static void mqtt_timer(void *arg) {
-  struct mg_mgr *mgr = (struct mg_mgr *) arg;
   if (g_mqtt_conn == NULL) {
-    g_mqtt_conn = glue_mqtt_connect(mgr, mqtt_event_handler);
+    g_mqtt_conn = s_mqtt_handlers.connect_fn(mqtt_event_handler);
   }
+  (void) arg;
+}
+
+void mongoose_set_mqtt_handlers(struct mongoose_mqtt_handlers *h) {
+  if (h->connect_fn) s_mqtt_handlers.connect_fn = h->connect_fn;
+  if (h->tls_init_fn) s_mqtt_handlers.tls_init_fn = h->tls_init_fn;
+  if (h->on_message_fn) s_mqtt_handlers.on_message_fn = h->on_message_fn;
+  if (h->on_connect_fn) s_mqtt_handlers.on_connect_fn = h->on_connect_fn;
+  if (h->on_cmd_fn) s_mqtt_handlers.on_cmd_fn = h->on_cmd_fn;
 }
 #endif  // WIZARD_ENABLE_MQTT
 
 #if WIZARD_ENABLE_MODBUS
+static struct mongoose_modbus_handlers s_modbus_handlers = {
+    glue_modbus_read_reg, glue_modbus_write_reg};
+
 static void handle_modbus_pdu(struct mg_connection *c, uint8_t *buf,
                               size_t len) {
   MG_DEBUG(("Received PDU %p len %lu, hexdump:", buf, len));
@@ -789,7 +818,7 @@ static void handle_modbus_pdu(struct mg_connection *c, uint8_t *buf,
     if (func == 6) {  // write single holding register
       uint16_t start = mg_ntohs(*(uint16_t *) &buf[8]);
       uint16_t value = mg_ntohs(*(uint16_t *) &buf[10]);
-      success = glue_modbus_write_reg(start, value);
+      success = s_modbus_handlers.write_reg_fn(start, value);
       *(uint16_t *) &response[8] = mg_htons(start);
       *(uint16_t *) &response[10] = mg_htons(value);
       response_len = 12;
@@ -800,8 +829,8 @@ static void handle_modbus_pdu(struct mg_connection *c, uint8_t *buf,
       uint16_t i, *data = (uint16_t *) &buf[13];
       if ((size_t) (num * 2 + 10) < sizeof(response)) {
         for (i = 0; i < num; i++) {
-          success =
-              glue_modbus_write_reg((uint16_t) (start + i), mg_htons(data[i]));
+          success = s_modbus_handlers.write_reg_fn((uint16_t) (start + i),
+                                                   mg_htons(data[i]));
           if (success == false) break;
         }
         *(uint16_t *) &response[8] = mg_htons(start);
@@ -815,7 +844,7 @@ static void handle_modbus_pdu(struct mg_connection *c, uint8_t *buf,
       if ((size_t) (num * 2 + 9) < sizeof(response)) {
         uint16_t i, val, *data = (uint16_t *) &response[9];
         for (i = 0; i < num; i++) {
-          success = glue_modbus_read_reg((uint16_t) (start + i), &val);
+          success = s_modbus_handlers.read_reg_fn((uint16_t) (start + i), &val);
           if (success == false) break;
           data[i] = mg_htons(val);
         }
@@ -848,6 +877,11 @@ static void modbus_ev_handler(struct mg_connection *c, int ev, void *ev_data) {
     mg_iobuf_del(&c->recv, 0, len + 6U);         // Delete received PDU
   }
   (void) ev_data;
+}
+
+void mongoose_set_modbus_handlers(struct mongoose_modbus_handlers *h) {
+  if (h->read_reg_fn) s_modbus_handlers.read_reg_fn = h->read_reg_fn;
+  if (h->write_reg_fn) s_modbus_handlers.write_reg_fn = h->write_reg_fn;
 }
 #endif  // WIZARD_ENABLE_MODBUS
 
@@ -884,7 +918,7 @@ static void dns_fn(struct mg_connection *c, int ev, void *ev_data) {
       memcpy(buf + sizeof(*h), c->recv.buf + sizeof(*h), n);  // Copy question
       memcpy(buf + sizeof(*h) + n, answer, sizeof(answer));   // And answer
 #if MG_ENABLE_TCPIP
-      ip = MG_TCPIP_IFACE(c->mgr)->ip;
+      ip = c->mgr->ifp->ip;
 #else
       ip = MG_TCPIP_IP;
 #endif
@@ -896,6 +930,56 @@ static void dns_fn(struct mg_connection *c, int ev, void *ev_data) {
   (void) ev_data;
 }
 #endif  // WIZARD_CAPTIVE_PORTAL
+
+#if WIZARD_ENABLE_MDNS
+
+static const uint8_t mdns_answer[] = {
+    0xc0, 0x0c,          // Point to the name in the DNS question
+    0,    1,             // 2 bytes - record type, A
+    0,    1,             // 2 bytes - address class, INET
+    0,    0,    0, 120,  // 4 bytes - TTL
+    0,    4              // 2 bytes - address length
+};
+
+static void mdns_fn(struct mg_connection *c, int ev, void *ev_data) {
+  if (ev == MG_EV_READ) {
+    struct mg_dns_rr rr;  // Parse first question, offset 12 is header size
+    size_t n = mg_dns_parse_rr(c->recv.buf, c->recv.len, 12, true, &rr);
+    MG_DEBUG(("MDNS request parsed, result=%d", (int) n));
+    if (n > 0) {
+      char buf[512];
+      char local_name[256];
+      uint32_t ip;
+      struct mg_dns_header *h = (struct mg_dns_header *) buf;
+      struct mg_dns_message dm;
+      mg_dns_parse(c->recv.buf, c->recv.len, &dm);
+      memset(buf, 0, sizeof(buf));  // Clear the whole datagram
+      memset(local_name, 0, sizeof(local_name));
+      mg_snprintf(local_name, sizeof(local_name) - 1, "%s.local", WIZARD_MDNS_NAME);
+      if (strcmp(local_name, dm.name)) {
+        mg_iobuf_del(&c->recv, 0, c->recv.len);
+        return; // Names do not match: drop
+      }
+      h->txnid = ((struct mg_dns_header *) c->recv.buf)->txnid;  // Copy tnxid
+      h->num_questions = mg_htons(1);  // We use only the 1st question
+      h->num_answers = mg_htons(1);    // And only one answer
+      h->flags = mg_htons(0x8400);     // Authoritative response
+      memcpy(buf + sizeof(*h), c->recv.buf + sizeof(*h), n);  // Copy question
+      memcpy(buf + sizeof(*h) + n, mdns_answer, sizeof(mdns_answer));   // And answer
+#if MG_ENABLE_TCPIP
+      ip = c->mgr->ifp->ip;
+#else
+      ip = MG_TCPIP_IP;
+#endif
+      memcpy(buf + sizeof(*h) + n + sizeof(mdns_answer), &ip, 4);
+      mg_send(c, buf, 12 + n + sizeof(mdns_answer) + 4);  // And send it!
+    }
+    mg_iobuf_del(&c->recv, 0, c->recv.len);
+  }
+  (void) ev_data;
+}
+
+#endif // WIZARD_ENABLE_MDNS
 
 void mongoose_init(void) {
   mg_mgr_init(&g_mgr);      // Initialise event manager
@@ -938,6 +1022,12 @@ void mongoose_init(void) {
   mg_listen(&g_mgr, CAPTIVE_PORTAL_URL, dns_fn, NULL);
 #endif
 
+#if WIZARD_ENABLE_MDNS
+  MG_INFO(("Starting MDNS (domain name: %s.local)", WIZARD_MDNS_NAME));
+  mg_listen(&g_mgr, "udp://0.0.0.0:5353", mdns_fn, NULL);
+#endif
+
+  glue_lock_init();
   MG_INFO(("Mongoose init complete"));
 }
 

@@ -6,21 +6,21 @@ void checkMiscTimer()
   static elapsedMillis miscTimer = 0;
   if (miscTimer > 499) { // 2hz
     miscTimer = 0;
-    struct misc misc_vars;
-    glue_get_misc(&misc_vars); // pull-sync from UI
+    struct misc misc_temp;
+    glue_get_misc(&misc_temp); // pull-sync from UI
 
-    LEDs.setBrightness(int(float(misc_vars.rgbBrightness) / 2.55));
+    LEDs.setBrightness(int(float(misc_temp.rgbBrightness) / 2.55));
 
-    struct comms comms_vars;
-    glue_get_comms(&comms_vars);
-    if (esp32ElapsedUpdateTime > 10000 && comms_vars.esp32State < 3) {
+    struct comms comms_temp;
+    glue_get_comms(&comms_temp);
+    if (esp32ElapsedUpdateTime > 10000 && comms_temp.esp32State < 3) {
       if (esp32ElapsedUpdateTime < 20000) {
-        comms_vars.esp32State = 2;  // set as "Timed out"
+        comms_temp.esp32State = 2;  // set as "Timed out"
       } else {
-        comms_vars.esp32State = 0;  // set as "Disconnected"
+        comms_temp.esp32State = 0;  // set as "Disconnected"
       }
     }
-    glue_set_comms(&comms_vars);
+    glue_set_comms(&comms_temp);
     glue_update_state();
   }
 }
@@ -64,74 +64,96 @@ void serial_init()
   SerialIMU.clear();
   SerialESP32.clear();
 
-  struct comms comms_local;
-  glue_get_comms(&comms_local);
-  //comms_local.gps2State = 3;    // set as 3 - "Undetected" at boot, UI Wizard defaults to '4' to show all UI elements while designing layout
-  glue_set_comms(&comms_local);
+  struct comms comms_temp;
+  glue_get_comms(&comms_temp);
+  //comms_temp.gps2State = 3;    // set as 3 - "Undetected" at boot, UI Wizard defaults to '4' to show all UI elements while designing layout
+  glue_set_comms(&comms_temp);
 }
 
 void uartDataChecks()
 {
-  struct comms comms_vars;
-  glue_get_comms(&comms_vars);
+  struct comms comms_temp;
+  glue_get_comms(&comms_temp);
 
   static elapsedMillis gps1ValidDataTimer = 0;
   static elapsedMillis gps1MissedDataTimer = 0;
   if (SerialGPS1.available()) {
-    comms_vars.gps1State = 1;
+    comms_temp.gps1State = 1;
     char r = SerialGPS1.read();
     //Serial.print(r);
     if (r == '$') gps1ValidDataTimer = 0;
   }
-  if (gps1ValidDataTimer > 150 && gps1ValidDataTimer < 1100 && comms_vars.gps1State < 3) {
-    comms_vars.gps1State = 2;
+  if (gps1ValidDataTimer > 150 && gps1ValidDataTimer < 1100 && comms_temp.gps1State < 3) {
+    comms_temp.gps1State = 2;
     gps1MissedDataTimer = 0;
   }
-  if (gps1ValidDataTimer > 1100 && comms_vars.gps1State < 3) {
-    comms_vars.gps1State = 0;
+  if (gps1ValidDataTimer > 1100 && comms_temp.gps1State < 3) {
+    comms_temp.gps1State = 0;
   }
 
 
   static elapsedMillis rtkValidDataTimer = 0;
   static elapsedMillis rtkMissedDataTimer = 0;
   if (SerialRTK.available()) {
-    if (comms_vars.rtkState != 2 || rtkMissedDataTimer > 3000){
-      comms_vars.rtkState = 1;
+    if (comms_temp.rtkState != 2 || rtkMissedDataTimer > 3000){
+      comms_temp.rtkState = 1;
       rtkMissedDataTimer = 0;
     }
     SerialRTK.read();
     rtkValidDataTimer = 0;
   }
-  if (rtkValidDataTimer > 2500 && rtkValidDataTimer < 11000 && comms_vars.rtkState < 3) {
-    comms_vars.rtkState = 2;
+  if (rtkValidDataTimer > 2500 && rtkValidDataTimer < 11000 && comms_temp.rtkState < 3) {
+    comms_temp.rtkState = 2;
     rtkMissedDataTimer = 0;
   }
-  if (rtkValidDataTimer > 11000 && comms_vars.rtkState < 3) {
-    if (comms_vars.rtkState != 2 || rtkMissedDataTimer > 3000) comms_vars.rtkState = 0;
+  if (rtkValidDataTimer > 11000 && comms_temp.rtkState < 3) {
+    if (comms_temp.rtkState != 2 || rtkMissedDataTimer > 3000) comms_temp.rtkState = 0;
   }
 
 
   static uint32_t imuValidDataTimer = 0;
   static uint32_t imuMissedDataTimer = 0;
-  if (SerialIMU.available()) {
-    if (comms_vars.imuState != 2 || millis() - imuMissedDataTimer > 5000) {
-      comms_vars.imuState = 1;
+  static int prevImuState = -1;
+  if (prevImuState != comms_temp.imuState) {
+    Serial.printf("%i: %i>%i\r\n", millis(), prevImuState, comms_temp.imuState);
+    prevImuState = comms_temp.imuState;
+  }
+  if (!strcmp(comms_temp.imuBaud, "DISABLED")) { // IMU input is disabled by user or system
+    if (comms_temp.imuState != 4) {
+      comms_temp.imuState = 4;
+      SerialIMU.end();
+      SerialIMU.clear();
+      Serial.print("IMU stop: ");
+      Serial.println(comms_temp.imuState);
+    }
+  } else {  // IMU is not disabled
+    if (comms_temp.imuState == 4) { // if IMU was previously disabled
+      SerialIMU.clear();
+      SerialIMU.begin(atoi(comms_temp.imuBaud));
+      comms_temp.imuState = 3;
+      Serial.print("IMU begin: ");
+      Serial.println(atoi(comms_temp.imuBaud));
+    }
+    if (SerialIMU.available() && comms_temp.imuState < 4) {
+      if (comms_temp.imuState != 2 || millis() - imuMissedDataTimer > 5000) {
+        comms_temp.imuState = 1;
+        imuMissedDataTimer = millis();
+      }
+      SerialIMU.read();
+      /*Serial.print(millis()); Serial.print(": ");
+      Serial.print(millis() - imuValidDataTimer); Serial.print(" <> "); Serial.println(millis() - imuMissedDataTimer);*/
+      imuValidDataTimer = millis();
+    }
+    if (millis() - imuValidDataTimer > 15 && millis() - imuValidDataTimer < 110 && comms_temp.imuState < 3) {
+      comms_temp.imuState = 2;
       imuMissedDataTimer = millis();
     }
-    SerialIMU.read();
-    Serial.print(millis()); Serial.print(": ");
-    Serial.print(millis() - imuValidDataTimer); Serial.print(" <> "); Serial.println(millis() - imuMissedDataTimer);
-    imuValidDataTimer = millis();
-  }
-  if (millis() - imuValidDataTimer > 15 && millis() - imuValidDataTimer < 110 && comms_vars.imuState < 3) {
-    comms_vars.imuState = 2;
-    imuMissedDataTimer = millis();
-  }
-  if (millis() - imuValidDataTimer > 110 && comms_vars.imuState < 3) {
-    if (comms_vars.imuState != 2 || millis() - imuMissedDataTimer > 5000) comms_vars.imuState = 0;
+    if (millis() - imuValidDataTimer > 110 && comms_temp.imuState < 3) {
+      if (comms_temp.imuState != 2 || millis() - imuMissedDataTimer > 5000) comms_temp.imuState = 0;
+    }
   }
   
 
-  glue_set_comms(&comms_vars);
+  glue_set_comms(&comms_temp);
   glue_update_state();
 }

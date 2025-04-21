@@ -29,6 +29,8 @@ extern "C" {
 #define WIZARD_DNS_TYPE 0  // 0: default Google, 1: DHCP, 2: custom
 #define WIZARD_DNS_URL "udp://8.8.8.8:53"  // Custom DNS server URL
 #define WIZARD_CAPTIVE_PORTAL 0
+#define WIZARD_ENABLE_MDNS 0
+#define WIZARD_MDNS_NAME ""
 
 #define WIZARD_ENABLE_MODBUS 0
 #define WIZARD_MODBUS_PORT 502
@@ -43,6 +45,21 @@ extern struct mg_mgr g_mgr;  // Mongoose event manager
 
 void mongoose_set_http_handlers(const char *name, ...);
 void mongoose_add_ws_handler(unsigned ms, void (*)(struct mg_connection *));
+
+struct mongoose_mqtt_handlers {
+  struct mg_connection *(*connect_fn)(mg_event_handler_t);
+  void (*tls_init_fn)(struct mg_connection *);
+  void (*on_connect_fn)(struct mg_connection *, int);
+  void (*on_message_fn)(struct mg_connection *, struct mg_str, struct mg_str);
+  void (*on_cmd_fn)(struct mg_connection *, struct mg_mqtt_message *);
+};
+void mongoose_set_mqtt_handlers(struct mongoose_mqtt_handlers *);
+
+struct mongoose_modbus_handlers {
+  bool (*read_reg_fn)(uint16_t address, uint16_t *value);
+  bool (*write_reg_fn)(uint16_t address, uint16_t value);
+};
+void mongoose_set_modbus_handlers(struct mongoose_modbus_handlers *);
 
 #define run_mongoose() \
   do {                 \
@@ -96,6 +113,7 @@ struct comms {
   int gps2State;
   bool gpsPass;
   char gpsSync[15];
+  char imuBaud[10];
   int imuState;
   char rs232Baud[10];
   int rs232State;

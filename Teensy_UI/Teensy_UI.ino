@@ -3,6 +3,7 @@
 */
 
 #include "src/mongoose_glue.h"
+//#include "mongoose/mongoose_glue.h"
 #include <EEPROM.h>
 #include <Streaming.h>
 #include "HardwareSerial.h"
@@ -13,8 +14,8 @@ const char* inoVersion = "AiO-NG-v6 " __DATE__ " " __TIME__;
 
 // globally available, working settings struct
 //  - read/write from/to this struct
-//  - call glue_get_inputs(&input_vars); before making changes
-//  - call glue_set_inputs(&input_vars); after making changes
+//  - call glue_get_inputs(&input_temp); before making changes
+//  - call glue_set_inputs(&input_temp); after making changes
 
 
 const uint16_t EE_IDENT = 2417; // change to force EE update
@@ -57,24 +58,24 @@ void setup() {
   uint16_t varSize = 0;
   EEPROM.get(eeAddr + 2, varSize);      // get size of struct, if Mongoose wizard has changed struct, reset to new defaults
 
-  struct inputs input_vars;
+  struct inputs input_temp;
   // if EE Ident OR the struct size does not match then overwrite with new defaults
-  if (eeIdentRead != EE_IDENT || varSize != sizeof(input_vars)) {
-    glue_get_inputs(&input_vars);
+  if (eeIdentRead != EE_IDENT || varSize != sizeof(input_temp)) {
+    glue_get_inputs(&input_temp);
     EEPROM.put(eeAddr + 0, EE_IDENT);   // EEPROM.put() uses EEPROM.update() which only writes to EEPROM if the value !=
-    EEPROM.put(eeAddr + 2, sizeof(input_vars));
-    EEPROM.put(eeAddr + 4, input_vars);
+    EEPROM.put(eeAddr + 2, sizeof(input_temp));
+    EEPROM.put(eeAddr + 4, input_temp);
     Serial.print("\r\n** EEPROM reset to new defaults **\r\n");
   } else {
-    EEPROM.get(eeAddr + 4, input_vars);  // read the Settings saved in EEPROM to the global Settings struct
+    EEPROM.get(eeAddr + 4, input_temp);  // read the Settings saved in EEPROM to the global Settings struct
     Serial.print("Loaded settings from EEPROM\r\n");
-    glue_set_inputs(&input_vars);
+    glue_set_inputs(&input_temp);
   }
 
-  struct misc misc_vars;
-  glue_get_misc(&misc_vars);
-  strcpy(misc_vars.fversion, inoVersion);
-  glue_set_misc(&misc_vars);
+  struct misc misc_temp;
+  glue_get_misc(&misc_temp);
+  strcpy(misc_temp.fversion, inoVersion);
+  glue_set_misc(&misc_temp);
 
   initializeInputs();
   LEDs.init();
@@ -88,6 +89,7 @@ void setup() {
 
 void loop() {
   mongoose_poll();
+  GUI_maintenance();
   LEDs.updateLoop();
   esp32DataCheck();
   USB_Data_Check();

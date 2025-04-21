@@ -65,7 +65,7 @@ void *glue_ota_begin_firmware_update(char *file_name, size_t total_size) {
   return ok ? (void *) 1 : NULL;
 }
 bool glue_ota_end_firmware_update(void *context) {
-  mg_timer_add(&g_mgr, 500, 0, (void (*)(void *)) mg_ota_end, context);
+  mg_timer_add(&g_mgr, 500, 0, (void (*)(void *)) (void *) mg_ota_end, context);
   return true;
 }
 bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
@@ -73,7 +73,7 @@ bool glue_ota_write_firmware_update(void *context, void *buf, size_t len) {
   return mg_ota_write(buf, len);
 }
 
-static struct comms s_comms = {"921600", -1, "921600", -1, false, "60ms - F9P", -1, "57600", -1, "AgOpenGPS", "115200", -1, "250000", -1, "1 - Pin 16/17", false, "460800", -1, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", -1};
+static struct comms s_comms = {"460800", 3, "DISABLED", 4, false, "60ms - F9P", "115200", 3, "DISABLED", 4, "AgOpenGPS", "DISABLED", 4, "DISABLED", 4, "1 - Pin 16/17", true, "460800", -1, "0d 0h 0m 0s", 12, "**SSID**", "**PW**", 3};
 void glue_get_comms(struct comms *data) {
   *data = s_comms;  // Sync with your device
 }
@@ -109,7 +109,7 @@ void glue_reply_outputsPwmFreqList(struct mg_connection *c, struct mg_http_messa
   (void) hm;
   mg_http_reply(c, 200, headers, "%s\n", value);
 }
-static struct misc s_misc = {75, false, "AiO NG v6"};
+static struct misc s_misc = {75, false, "AiO v6 NG"};
 void glue_get_misc(struct misc *data) {
   *data = s_misc;  // Sync with your device
 }

@@ -53,19 +53,20 @@
       "read_level": 3, 
       "write_level": 7, 
       "attributes": {
-        "gps1Baud": {"type": "string", "value": "921600", "size": 10}, 
+        "gps1Baud": {"type": "string", "value": "460800", "size": 10}, 
         "gps1State": {"type": "int", "value": -1}, 
-        "gps2Baud": {"type": "string", "value": "921600", "size": 10}, 
+        "gps2Baud": {"type": "string", "value": "DISABLED", "size": 10}, 
         "gps2State": {"type": "int", "value": -1}, 
         "gpsPass": {"type": "bool", "value": false}, 
         "gpsSync": {"type": "string", "size": 15, "value": "60ms - F9P"}, 
+        "imuBaud": {"type": "string", "value": "115200", "size": 10}, 
         "imuState": {"type": "int", "value": -1}, 
-        "rs232Baud": {"type": "string", "value": "57600", "size": 10}, 
+        "rs232Baud": {"type": "string", "value": "DISABLED", "size": 10}, 
         "rs232State": {"type": "int", "value": -1}, 
         "nmeaSource": {"type": "string", "value": "AgOpenGPS", "size": 10}, 
-        "rtkBaud": {"type": "string", "value": "115200", "size": 10}, 
+        "rtkBaud": {"type": "string", "value": "DISABLED", "size": 10}, 
         "rtkState": {"type": "int", "value": -1, "comment": "does not parse data, only detects that there is some data"}, 
-        "keyaBaud": {"type": "string", "value": "250000", "size": 10, "comment": "if DISABLED is selected, set [device]State = 4"}, 
+        "keyaBaud": {"type": "string", "value": "DISABLED", "size": 10, "comment": "if DISABLED is selected, set [device]State = 4"}, 
         "keyaState": {"type": "int", "value": -1, "comment": "-1: Show all elements, 0: Timed Out, 1: Active, 2: Missed Updates, 3: Undetected, 4: Disabled by User, 5: Disabled by Hardware (hidden)"}, 
         "keyaPort": {"type": "string", "value": "1 - Pin 16/17", "size": 15}, 
         "esp32BridgeEnabled": {"type": "bool", "value": true}, 
@@ -164,9 +165,9 @@
     "heartbeat": 1, 
     "pages": [
       {"title": "Status", "icon": "home", "classes": "page", "layout": [
-          {"css": "gap:1rem;\nflex-wrap:wrap; align-items: start; display: flex;", "layout": [
+          {"css": "gap:1rem;flex-wrap:wrap;align-items:start;display:flex;", "layout": [
               {"classes": "panel", "layout": [
-                  {"classes": "title", "format": "Comms"},
+                  {"classes": "title", "format": "Comms", "tooltip": "Communication Overview"},
                   {"classes": "line-container", "layout": [
                       {"format": "GPS1", "classes": "label-${comms.gps1State}"},
                       {"type": "icon", "icon": "circle", "tooltip": "Grey: Unused, Red: Bad, Green: Good, Orange: Poor", "classes": "icon-${comms.gps1State}"}
@@ -236,18 +237,18 @@
                         ]}
                     ]}
                 ]},
-              {"classes": "container", "css": "gap:1rem;\nflex-direction:column;\nflex-wrap:wrap;", "layout": [
+              {"classes": "container", "css": "gap:1rem;flex-direction:column;flex-wrap:wrap;", "layout": [
                   {"classes": "panel ${websocket.test == 1 ? 'pulse-5s' : ' '}", "layout": [
                       {"classes": "title", "format": "Misc"},
                       {"classes": "line-container", "layout": [
                           {"format": "Front Panel LED Brightness", "classes": "labels"}
                         ]},
                       {"layout": [
-                          {"type": "slider", "ref": "misc.rgbBrightness", "autosave": true, "min": "0", "max": "100"}
+                          {"type": "slider", "ref": "misc.rgbBrightness", "autosave": true, "min": "0", "max": "100", "tooltip": "Adjust front panel LED brightness"}
                         ]},
                       {"layout": []},
                       {"layout": [
-                          {"type": "action", "ref": "reboot", "title": "reboot", "icon": "reload"}
+                          {"type": "action", "ref": "reboot", "title": "reboot", "icon": "reload", "tooltip": "Reboot Teensy"}
                         ]}
                     ]},
                   {"classes": "panel", "layout": [
@@ -280,7 +281,8 @@
                       {"type": "icon", "icon": "circle", "tooltip": "", "classes": "icon-3"}
                     ]},
                   {"classes": "line-container", "layout": [
-                      {"format": "  4 - Disabled by user", "classes": "label-4", "css": "white-space: pre;"},
+                      {"format": "  4 - Disabled by user", "classes": "label-4", "css": "white-space:pre;"},
+                      {"type": "icon", "icon": "circle", "classes": "icon-lh--1"},
                       {"type": "icon", "icon": "circle", "tooltip": "", "classes": "icon-4"}
                     ]},
                   {"classes": "line-container3", "layout": [
@@ -317,18 +319,18 @@
             ]}
         ]},
       {"title": "Comms", "icon": "link", "classes": "page", "layout": [
-          {"css": "gap:1rem;\nalign-items:start;\nflex-wrap:wrap; display: flex;", "layout": [
+          {"css": "gap:1rem;align-items:start;flex-wrap:wrap;display:flex;", "layout": [
               {"classes": "panel", "layout": [
                   {"type": "text", "classes": "title", "format": "GPS"},
                   {"type": "container", "classes": "line-container", "layout": [
-                      {"type": "text", "format": "GPS1 Baud:", "classes": "labels", "css": "${comms.gps1Baud == 'DISABLED' ? 'text-decoration:line-through;' : ''}"},
+                      {"type": "text", "format": "GPS1 Baud:", "classes": "label-${comms.gps1State}"},
                       {"type": "dropdown", "ref": "comms.gps1Baud", "options": "DISABLED,9600,19200,38400,57600,115200,460800,921600", "autosave": true},
                       {"type": "icon", "icon": "circle", "classes": "icon-${comms.gps1State}"}
                     ]},
                   {"type": "container", "classes": "line-container", "layout": [
-                      {"type": "text", "format": "GPS2 Baud:", "classes": "labels", "css": "${comms.gps2Baud == 'DISABLED' ? 'text-decoration:line-through;' : ''}"},
+                      {"type": "text", "format": "GPS2 Baud:", "classes": "label-${comms.gps2State}", "css": "${comms.gps2Baud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''};"},
                       {"type": "dropdown", "ref": "comms.gps2Baud", "options": "DISABLED,9600,19200,38400,57600,115200,460800,921600", "autosave": true},
-                      {"type": "icon", "icon": "circle", "classes": "icon-${comms.gps2State}"}
+                      {"type": "icon", "icon": "circle", "classes": "icon-${comms.gps2State}", "css": "${comms.gps2Baud == 'DISABLED' ? 'color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c;' : ''};"}
                     ]},
                   {"type": "container", "classes": "line-container", "layout": [
                       {"type": "text", "format": "GPS -> UDP -> AgIO", "classes": "labels"},
@@ -343,17 +345,17 @@
                   {"classes": "panel", "layout": [
                       {"type": "text", "classes": "title", "format": "IMU"},
                       {"type": "container", "classes": "line-container", "layout": [
-                          {"type": "text", "format": "IMU Baud:", "classes": "labels"},
-                          {"type": "text", "format": "115200", "classes": "labels"},
-                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.imuState}"}
+                          {"type": "text", "format": "IMU Baud:", "classes": "labels", "css": "${comms.imuBaud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''};"},
+                          {"type": "dropdown", "ref": "comms.rs232Baud", "options": "DISABLED,115200", "autosave": true},
+                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.imuState}", "css": "${comms.imuBaud == 'DISABLED' ? 'color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c;' : ''};"}
                         ]}
                     ]},
                   {"classes": "panel", "layout": [
                       {"type": "text", "classes": "title", "format": "RS232 - NMEA"},
                       {"type": "container", "classes": "line-container", "layout": [
-                          {"type": "text", "format": "RS232 Baud:", "classes": "labels", "css": "${comms.rs232Baud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''}"},
+                          {"type": "text", "format": "RS232 Baud:", "classes": "labels", "css": "${comms.rs232Baud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''};"},
                           {"type": "dropdown", "ref": "comms.rs232Baud", "options": "DISABLED,4800,9600,19200,38400,57600,115200,460800", "autosave": true},
-                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.rs232State}"}
+                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.rs232State}", "css": "${comms.rs232Baud == 'DISABLED' ? 'color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c;' : ''};"}
                         ]},
                       {"type": "container", "classes": "line-container", "layout": [
                           {"type": "text", "format": "NMEA Source:", "classes": "labels"},
@@ -365,9 +367,9 @@
                   {"classes": "panel", "layout": [
                       {"type": "text", "classes": "title", "format": "Keya - Can Bus"},
                       {"type": "container", "classes": "line-container", "layout": [
-                          {"type": "text", "format": "Keya Baud:", "classes": "labels", "css": "${comms.keyaBaud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''}"},
+                          {"type": "text", "format": "Keya Baud:", "classes": "labels", "css": "${comms.keyaBaud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''};"},
                           {"type": "dropdown", "ref": "comms.keyaBaud", "options": "DISABLED,250000,500000", "autosave": true},
-                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.keyaState}"}
+                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.keyaState}", "css": "${comms.keyaBaud == 'DISABLED' ? 'color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c;' : ''};"}
                         ]},
                       {"type": "container", "classes": "line-container", "layout": [
                           {"type": "text", "format": "Can Bus Port:", "classes": "labels"},
@@ -377,9 +379,9 @@
                   {"classes": "panel", "layout": [
                       {"type": "text", "classes": "title", "format": "RTK Radio (Xbee or External)"},
                       {"type": "container", "classes": "line-container", "layout": [
-                          {"type": "text", "format": "RTK Baud:", "classes": "label-${comms.rtkState}", "css": "${comms.rtkBaud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''}"},
-                          {"type": "dropdown", "ref": "comms.rtkBaud", "options": "DISABLED,4800,9600,19200,38400,57600,115200,460800,921600", "autosave": true},
-                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.rtkState}"}
+                          {"type": "text", "format": "RTK Baud:", "classes": "label-${comms.rtkState}", "css": "${comms.rtkBaud == 'DISABLED' ? 'text-decoration:line-through;color:grey' : ''};"},
+                          {"type": "dropdown", "ref": "comms.rtkBaud", "options": "DISABLED,4800,9600,19200,38400,57600,115200,460800,921600", "autosave": true, "tooltip": "Set Xbee Radio Baud"},
+                          {"type": "icon", "icon": "circle", "classes": "icon-${comms.rtkState}", "css": "${comms.rtkBaud == 'DISABLED' ? 'color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c;' : ''};"}
                         ]}
                     ], "css": "height:5.526988983154297rem;\n"}
                 ]},
@@ -437,7 +439,7 @@
                               {"type": "icon", "icon": "circle", "classes": "${websocket.workInput < inputs.workThres - inputs.workHystVal ? 'icon-lh-0' : websocket.workInput > inputs.workThres + inputs.workHystVal ? 'icon-lh-1' : 'icon-lh-3'}"},
                               {"format": "LOW", "css": "${websocket.workInput > inputs.workThres - inputs.workHystVal ? 'display:none;' : ''}", "classes": "label-lh"},
                               {"format": "HIGH", "css": "${websocket.workInput < inputs.workThres + inputs.workHystVal ? 'display:none;' : ''}", "classes": "label-lh"}
-                            ], "classes": "line-container", "css": "flex: 0 0 auto;width:4rem;\n"},
+                            ], "classes": "line-container", "css": "flex:0 0 auto;width:4rem;"},
                           {"classes": "line-container", "layout": [
                               {"format": "Invert"},
                               {"type": "toggle", "ref": "inputs.workInvert", "autosave": true}
@@ -518,10 +520,10 @@
                                   {"type": "toggle", "ref": "inputs.kickoutInvert", "autosave": true}
                                 ], "css": "gap: 1em;"},
                               {"classes": "line-container", "layout": [
+                                  {"type": "icon", "icon": "circle", "classes": "${websocket.kickoutStateHist == 0 ? 'icon-oo-0' : websocket.kickoutStateHist == 1 ? 'icon-oo-1' : 'icon-oo-7'}"},
                                   {"format": "ON", "css": "${websocket.kickoutState == 0 || websocket.kickoutState> 1 ? 'display:none;' : ''} ", "classes": "label-oo"},
                                   {"format": "OFF", "css": "${websocket.kickoutState > 0 ? 'display:none;' : ''} ", "classes": "label-oo"},
-                                  {"type": "icon", "icon": "circle", "classes": "icon-oo-${websocket.kickoutState}"},
-                                  {"type": "icon", "icon": "circle", "classes": "${websocket.kickoutStateHist == 0 ? 'icon-oo-0' : websocket.kickoutStateHist == 1 ? 'icon-oo-1' : 'icon-oo-7'}"}
+                                  {"type": "icon", "icon": "circle", "classes": "icon-oo-${websocket.kickoutState}"}
                                 ]}
                             ]},
                           {"type": "container", "classes": "line-container3", "layout": [
@@ -536,7 +538,7 @@
             ]}
         ]},
       {"title": "Outputs", "icon": "activity", "classes": "page", "layout": [
-          {"type": "container", "css": "gap:1rem;\nflex-wrap:wrap; align-items: start; display: flex;", "layout": [
+          {"type": "container", "css": "gap:1rem;flex-wrap:wrap;align-items:start;display:flex;", "layout": [
               {"classes": "panel", "layout": [
                   {"type": "text", "format": "Section/Machine", "classes": "title"},
                   {"type": "container", "classes": "line-container3", "layout": [
@@ -560,7 +562,7 @@
                       {"type": "toggle", "ref": "outputs.sec1Invert", "autosave": true, "disabled": "${outputs.sec1State == 4}"},
                       {"type": "icon", "icon": "circle", "classes": "icon-lh-${outputs.sec1Output}", "css": "\n"},
                       {"type": "action", "title": " ", "icon": "refresh", "ref": "cycleOutput", "css": "height:2.5rem;\nfont-size:1.2rem;\n", "disabled": "${outputs.sec1State == 4}", "params": "1"},
-                      {"type": "text", "format": "${outputs.sec1PinsStr}", "classes": "labels", "css": "flex: 0 0 auto;width:3.5rem;\ntext-align: center;\n"}
+                      {"type": "text", "format": "${outputs.sec1PinsStr}", "classes": "labels", "css": "flex:0 0 auto;width:3.5rem;text-align:center;"}
                     ], "css": "${outputs.sec1State  == 5 ? 'display:none;' : outputs.sec1State  == 4 ? 'opacity: 0.3;' : ''}"},
                   {"type": "container", "classes": "line-container3", "layout": [
                       {"type": "text", "format": "Sec 2", "classes": "label-${outputs.sec2State}"},
@@ -655,7 +657,7 @@
     ], 
     "buttons": "azure", 
     "basetheme": "dark", 
-    "classes": "/* color:rgba(34,197,94,1); is the same as color:#22c55e; } /* default dimmed green */\n/* color:rgba(239,68,68,1); is the same as color:#ef4444; } /* default dimmed red */\n\n/*.blink { animation: blinker 1s linear infinite; } blink class is now included by default*/\n/*.pulse-5s { animation: pulse-animation 1.5s 5; }*/\n\n/* leave this here for icon-2 class */\n@keyframes blinker {\n  50% { opacity: 0; }\n}\n\n/*.toggle:checked { background: rgba(227,227,227,0.9) !important; } /* background: var(--buttonBgColor) this sets the ON color */\n/*.toggle { background: rgba(227,227,227,0.4) !important; } /* background: var(--buttonDisabledColor) #ef4444 this sets the OFF color*/\n/*.toggle:checked { background: rgba(255,89,0,0.9) !important; } /* background: var(--buttonBgColor) this sets the ON color */\n/*.toggle { background: rgba(255,89,0,0.4) !important; } /* background: var(--buttonDisabledColor) #ef4444 this sets the OFF color*/\n/*.toggle:checked { background: rgba(80,80,200,0.6) !important; } /* background: var(--buttonBgColor) this sets the ON color */\n/*.toggle { background: rgba(150,150,200,0.4) !important; } /* background: var(--buttonDisabledColor) #ef4444 this sets the OFF color*/\n/*.toggle:disabled { background: var(--buttonDisabledColor) !important; } /* this sets the DISABLED color*/\n\n\n.line-container { display:flex; align-items:center; justify-content:space-between; height: 2rem; gap:0.5rem; }\n.line-container3 { display:flex; align-items:center; justify-content:space-between; height: 3rem; gap:0.5rem; }\n\n.draw-color-0 { --drawColor:#ef4444 }\n.draw-color-1 { --drawColor:#22c55e }\n\n.icon--1 { } /*show all*/\n.icon-0 { color: #ef4444; animation: blinker 1s linear infinite; } /* OFF light red */\n.icon-1 { color: #22c55e; } /* ON light green */\n.icon-2 { color: #ffc800; animation: blinker 1s linear infinite; } /* Missed Update */\n.icon-3 { color: grey; }    /* not detected */\n.icon-4 { display: none; }  /* disabled by user \n.icon-5 { display: none; }   disabled by hardware, hide panels/containers instead of icon for #5 */\n.icon-6 { } /*show all*/\n\n.icon-lh--1 { color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-lh-0 { color:black; border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-lh-1 { color:red; border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-lh-3 { color: var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-oo-0 { color:rgba(227,227,227,0.1); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-oo-1 { color:rgba(227,227,227,0.9); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-oo-7 { color:#3d85c6; border-radius:1rem; border:2px solid #8c8c8c; }\n\n.labels { padding-right: 10px;}\n\n.label--1 { padding-right: 10px; } /*show all*/\n.label-0 { padding-right: 10px; }\n.label-1 { padding-right: 10px; }\n.label-2 { padding-right: 10px; }\n.label-3 { padding-right: 10px; color: grey;}\n.label-4 { padding-right: 10px; color: grey; text-decoration: line-through;} /*\n.label-5 { display: none; } hide panels/containers instead of label for #5 */\n.label-6 { padding-right: 10px; } /*show all*/\n\n.label-oo { flex: 0 0 auto; width:2rem; }\n.label-lh { flex: 0 0 auto; width:2.5rem; }\n\n{ border-radius:1rem; border:2px solid #8c8c8c; color:rgba(227,227,227,0.1); }", 
+    "classes": "/* color:rgba(34,197,94,1); is the same as color:#22c55e; } /* default dimmed green */\n/* color:rgba(239,68,68,1); is the same as color:#ef4444; } /* default dimmed red */\n\n/*.blink { animation: blinker 1s linear infinite; } blink class is now included by default*/\n/*.pulse-5s { animation: pulse-animation 1.5s 5; }*/\n\n/* leave this here for icon-2 class */\n@keyframes blinker {\n  50% { opacity: 0; }\n}\n\n/*.toggle:checked { background: rgba(227,227,227,0.9) !important; } /* background: var(--buttonBgColor) this sets the ON color */\n/*.toggle { background: rgba(227,227,227,0.4) !important; } /* background: var(--buttonDisabledColor) #ef4444 this sets the OFF color*/\n/*.toggle:checked { background: rgba(255,89,0,0.9) !important; } /* background: var(--buttonBgColor) this sets the ON color */\n/*.toggle { background: rgba(255,89,0,0.4) !important; } /* background: var(--buttonDisabledColor) #ef4444 this sets the OFF color*/\n/*.toggle:checked { background: rgba(80,80,200,0.6) !important; } /* background: var(--buttonBgColor) this sets the ON color */\n/*.toggle { background: rgba(150,150,200,0.4) !important; } /* background: var(--buttonDisabledColor) #ef4444 this sets the OFF color*/\n/*.toggle:disabled { background: var(--buttonDisabledColor) !important; } /* this sets the DISABLED color*/\n\n\n.line-container { display:flex; align-items:center; justify-content:space-between; height: 2rem; gap:0.5rem; }\n.line-container3 { display:flex; align-items:center; justify-content:space-between; height: 3rem; gap:0.5rem; }\n\n.draw-color-0 { --drawColor:#ef4444 }\n.draw-color-1 { --drawColor:#22c55e }\n\n.icon--1 { } /*show all*/\n.icon-0 { color: #ef4444; animation: blinker 1s linear infinite; } /* OFF light red */\n.icon-1 { color: #22c55e; } /* ON light green */\n.icon-2 { color: #ffc800; animation: blinker 1s linear infinite; } /* Missed Update */\n.icon-3 { color: grey; }    /* not detected */\n.icon-4 { color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c; }  /* disabled by user \n.icon-5 { display: none; }   disabled by hardware, hide panels/containers instead of icon for #5 */\n.icon-6 { } /*show all*/\n\n.icon-lh--1 { color:var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-lh-0 { color:black; border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-lh-1 { color:red; border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-lh-3 { color: var(--panelBgColor); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-oo-0 { color:rgba(227,227,227,0.1); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-oo-1 { color:rgba(227,227,227,0.9); border-radius:1rem; border:2px solid #8c8c8c; }\n.icon-oo-7 { color:#3d85c6; border-radius:1rem; border:2px solid #8c8c8c; }\n\n.labels { padding-right: 10px;}\n\n.label--1 { padding-right: 10px; } /*show all*/\n.label-0 { padding-right: 10px; }\n.label-1 { padding-right: 10px; }\n.label-2 { padding-right: 10px; }\n.label-3 { padding-right: 10px; color: grey;}\n.label-4 { padding-right: 10px; color: grey; text-decoration: line-through;} /*\n.label-5 { display: none; } hide panels/containers instead of label for #5 */\n.label-6 { padding-right: 10px; } /*show all*/\n\n.label-oo { flex: 0 0 auto; width:2rem; }\n.label-lh { flex: 0 0 auto; width:2.5rem; }\n\n{ border-radius:1rem; border:2px solid #8c8c8c; color:rgba(227,227,227,0.1); }", 
     "theme": {
       "sidebarWidth": "10rem", 
       "textSize": "1.2rem"

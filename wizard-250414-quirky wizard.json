@@ -164,9 +164,9 @@
     "heartbeat": 1, 
     "pages": [
       {"title": "Status", "icon": "home", "classes": "page", "layout": [
-          {"css": "gap:1rem;\nflex-wrap:wrap; align-items: start; display: flex;", "layout": [
+          {"css": "gap:1rem;flex-wrap:wrap;align-items:start;display:flex;", "layout": [
               {"classes": "panel", "layout": [
-                  {"classes": "title", "format": "Comms"},
+                  {"classes": "title", "format": "Comms", "tooltip": "Communication Overview"},
                   {"classes": "line-container", "layout": [
                       {"format": "GPS1", "classes": "label-${comms.gps1State}"},
                       {"type": "icon", "icon": "circle", "tooltip": "Grey: Unused, Red: Bad, Green: Good, Orange: Poor", "classes": "icon-${comms.gps1State}"}
@@ -243,11 +243,11 @@
                           {"format": "Front Panel LED Brightness", "classes": "labels"}
                         ]},
                       {"layout": [
-                          {"type": "slider", "ref": "misc.rgbBrightness", "autosave": true, "min": "0", "max": "100"}
+                          {"type": "slider", "ref": "misc.rgbBrightness", "autosave": true, "min": "0", "max": "100", "tooltip": "Adjust front panel LED brightness"}
                         ]},
                       {"layout": []},
                       {"layout": [
-                          {"type": "action", "ref": "reboot", "title": "reboot", "icon": "reload"}
+                          {"type": "action", "ref": "reboot", "title": "reboot", "icon": "reload", "tooltip": "Reboot Teensy"}
                         ]}
                     ]},
                   {"classes": "panel", "layout": [
@@ -536,7 +536,7 @@
             ]}
         ]},
       {"title": "Outputs", "icon": "activity", "classes": "page", "layout": [
-          {"type": "container", "css": "gap:1rem;\nflex-wrap:wrap; align-items: start; display: flex;", "layout": [
+          {"type": "container", "css": "gap:1rem;flex-wrap:wrap;align-items:start;display:flex;", "layout": [
               {"classes": "panel", "layout": [
                   {"type": "text", "format": "Section/Machine", "classes": "title"},
                   {"type": "container", "classes": "line-container3", "layout": [
@@ -560,7 +560,7 @@
                       {"type": "toggle", "ref": "outputs.sec1Invert", "autosave": true, "disabled": "${outputs.sec1State == 4}"},
                       {"type": "icon", "icon": "circle", "classes": "icon-lh-${outputs.sec1Output}", "css": "\n"},
                       {"type": "action", "title": " ", "icon": "refresh", "ref": "cycleOutput", "css": "height:2.5rem;\nfont-size:1.2rem;\n", "disabled": "${outputs.sec1State == 4}", "params": "1"},
-                      {"type": "text", "format": "${outputs.sec1PinsStr}", "classes": "labels", "css": "flex: 0 0 auto;width:3.5rem;\ntext-align: center;\n"}
+                      {"type": "text", "format": "${outputs.sec1PinsStr}", "classes": "labels", "css": "flex:0 0 auto;width:3.5rem;text-align:center;"}
                     ], "css": "${outputs.sec1State  == 5 ? 'display:none;' : outputs.sec1State  == 4 ? 'opacity: 0.3;' : ''}"},
                   {"type": "container", "classes": "line-container3", "layout": [
                       {"type": "text", "format": "Sec 2", "classes": "label-${outputs.sec2State}"},

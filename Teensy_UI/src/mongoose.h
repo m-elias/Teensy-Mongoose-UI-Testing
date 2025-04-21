@@ -424,6 +424,18 @@ static inline int mg_mkdir(const char *path, mode_t mode) {
 
 #if MG_ARCH == MG_ARCH_WIN32
 
+// Avoid name clashing; (macro expansion producing 'defined' has undefined
+// behaviour). See config.h for user options
+#ifndef MG_ENABLE_WINSOCK
+#if (!defined(MG_ENABLE_TCPIP) || !MG_ENABLE_TCPIP) && \
+    (!defined(MG_ENABLE_LWIP) || !MG_ENABLE_LWIP) &&   \
+    (!defined(MG_ENABLE_FREERTOS_TCP) || !MG_ENABLE_FREERTOS_TCP)
+#define MG_ENABLE_WINSOCK 1
+#else
+#define MG_ENABLE_WINSOCK 0
+#endif
+#endif
+
 #ifndef _CRT_RAND_S
 #define _CRT_RAND_S
 #endif
@@ -469,12 +481,14 @@ typedef enum { false = 0, true = 1 } bool;
 #else
 #include <stdbool.h>
 #include <stdint.h>
+#if MG_ENABLE_WINSOCK
 #include <ws2tcpip.h>
+#endif
 #endif
 
 #include <process.h>
 #include <winerror.h>
-#include <winsock2.h>
+#include <winsock2.h>       // fix missing macros and types
 
 // For mg_random()
 #if defined(_MSC_VER) && _MSC_VER < 1700
@@ -495,24 +509,29 @@ typedef enum { false = 0, true = 1 } bool;
 #endif
 #endif
 
-#define MG_INVALID_SOCKET INVALID_SOCKET
-#define MG_SOCKET_TYPE SOCKET
 typedef unsigned long nfds_t;
 #if defined(_MSC_VER)
+#if MG_ENABLE_WINSOCK
 #pragma comment(lib, "ws2_32.lib")
+#endif
 #ifndef alloca
 #define alloca(a) _alloca(a)
 #endif
 #endif
-#define poll(a, b, c) WSAPoll((a), (b), (c))
-#define closesocket(x) closesocket(x)
 
-typedef int socklen_t;
 #define MG_DIRSEP '\\'
 
 #ifndef MG_PATH_MAX
 #define MG_PATH_MAX FILENAME_MAX
 #endif
+
+#if MG_ENABLE_WINSOCK
+
+#define MG_INVALID_SOCKET INVALID_SOCKET
+#define MG_SOCKET_TYPE SOCKET
+#define poll(a, b, c) WSAPoll((a), (b), (c))
+#define closesocket(x) closesocket(x)
+typedef int socklen_t;
 
 #ifndef SO_EXCLUSIVEADDRUSE
 #define SO_EXCLUSIVEADDRUSE ((int) (~SO_REUSEADDR))
@@ -528,13 +547,15 @@ typedef int socklen_t;
 #define MG_SOCK_RESET(errcode) \
   (((errcode) < 0) && (WSAGetLastError() == WSAECONNRESET))
 
+#endif  // MG_ENABLE_WINSOCK
+
 #define realpath(a, b) _fullpath((b), (a), MG_PATH_MAX)
-#define sleep(x) Sleep((x) * 1000)
+#define sleep(x) Sleep((x) *1000)
 #define mkdir(a, b) _mkdir(a)
 #define timegm(x) _mkgmtime(x)
 
 #ifndef S_ISDIR
-#define S_ISDIR(x) (((x) & _S_IFMT) == _S_IFDIR)
+#define S_ISDIR(x) (((x) &_S_IFMT) == _S_IFDIR)
 #endif
 
 #ifndef MG_ENABLE_DIRLIST
@@ -774,7 +795,8 @@ struct timeval {
 #define MG_ENABLE_MD5 1
 #endif
 
-// Set MG_ENABLE_WINSOCK=0 for Win32 builds with external IP stack (like LWIP)
+// Set MG_ENABLE_WINSOCK=0 for Win32 builds with other external IP stack not
+// mentioned in arch_win32.h
 #ifndef MG_ENABLE_WINSOCK
 #define MG_ENABLE_WINSOCK 1
 #endif
@@ -892,8 +914,8 @@ struct timeval {
 #define MG_SET_MAC_ADDRESS(mac)
 #endif
 
-#ifndef MG_SET_WIFI_CREDS
-#define MG_SET_WIFI_CREDS(ssid, pass)
+#ifndef MG_SET_WIFI_CONFIG
+#define MG_SET_WIFI_CONFIG(data)
 #endif
 
 #ifndef MG_ENABLE_TCPIP_PRINT_DEBUG_STATS
@@ -1020,16 +1042,17 @@ void mg_log_set_fn(mg_pfn_t fn, void *param);
 
 
 struct mg_timer {
-  unsigned long id;         // Timer ID
-  uint64_t period_ms;       // Timer period in milliseconds
-  uint64_t expire;          // Expiration timestamp in milliseconds
-  unsigned flags;           // Possible flags values below
-#define MG_TIMER_ONCE 0     // Call function once
-#define MG_TIMER_REPEAT 1   // Call function periodically
-#define MG_TIMER_RUN_NOW 2  // Call immediately when timer is set
-  void (*fn)(void *);       // Function to call
-  void *arg;                // Function argument
-  struct mg_timer *next;    // Linkage
+  uint64_t period_ms;          // Timer period in milliseconds
+  uint64_t expire;             // Expiration timestamp in milliseconds
+  unsigned flags;              // Possible flags values below
+#define MG_TIMER_ONCE 0        // Call function once
+#define MG_TIMER_REPEAT 1      // Call function periodically
+#define MG_TIMER_RUN_NOW 2     // Call immediately when timer is set
+#define MG_TIMER_CALLED 4      // Timer function was called at least once
+#define MG_TIMER_AUTODELETE 8  // free() timer when done
+  void (*fn)(void *);          // Function to call
+  void *arg;                   // Function argument
+  struct mg_timer *next;       // Linkage
 };
 
 void mg_timer_init(struct mg_timer **head, struct mg_timer *timer,
@@ -1107,6 +1130,7 @@ char *mg_random_str(char *buf, size_t len);
 uint32_t mg_crc32(uint32_t crc, const char *buf, size_t len);
 uint64_t mg_millis(void);  // Return milliseconds since boot
 bool mg_path_is_sane(const struct mg_str path);
+void mg_delayms(unsigned int ms);
 
 #define MG_U32(a, b, c, d)                                         \
   (((uint32_t) ((a) &255) << 24) | ((uint32_t) ((b) &255) << 16) | \
@@ -2208,7 +2232,6 @@ struct mg_mgr {
   int dnstimeout;               // DNS resolve timeout in milliseconds
   bool use_dns6;                // Use DNS6 server by default, see #1532
   unsigned long nextid;         // Next connection ID
-  unsigned long timerid;        // Next timer ID
   void *userdata;               // Arbitrary user data pointer
   void *tls_ctx;                // TLS context shared by all TLS sessions
   uint16_t mqtt_id;             // MQTT IDs for pub/sub
@@ -2806,6 +2829,7 @@ enum {
   MG_TCPIP_EV_WIFI_SCAN_RESULT, // Wi-Fi scan results             struct mg_wifi_scan_bss_data *
   MG_TCPIP_EV_WIFI_SCAN_END,    // Wi-Fi scan has finished        NULL
   MG_TCPIP_EV_WIFI_CONNECT_ERR, // Wi-Fi connect has failed       driver and chip specific
+  MG_TCPIP_EV_DRIVER,           // Driver event                   driver specific
   MG_TCPIP_EV_USER              // Starting ID for user events
 };
 
@@ -2869,6 +2893,7 @@ extern struct mg_tcpip_driver mg_tcpip_driver_xmc7;
 extern struct mg_tcpip_driver mg_tcpip_driver_ppp;
 extern struct mg_tcpip_driver mg_tcpip_driver_pico_w;
 extern struct mg_tcpip_driver mg_tcpip_driver_rw612;
+extern struct mg_tcpip_driver mg_tcpip_driver_cyw;
 
 // Drivers that require SPI, can use this SPI abstraction
 struct mg_tcpip_spi {
@@ -2957,6 +2982,60 @@ struct mg_profitem {
 
 #include "Driver_ETH_MAC.h"  // keep this include
 #include "Driver_ETH_PHY.h"  // keep this include
+
+#endif
+
+
+#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_CYW) && MG_ENABLE_DRIVER_CYW
+
+struct mg_tcpip_spi_ {
+  void *spi;              // Opaque SPI bus descriptor
+  void (*begin)(void *);  // SPI begin: slave select low
+  void (*end)(void *);    // SPI end: slave select high
+  void (*txn)(void *, uint8_t *, uint8_t *,
+              size_t len);  // SPI transaction: write-read len bytes
+};
+
+struct mg_tcpip_driver_cyw_firmware {
+  const uint8_t *code_addr;
+  size_t code_len;
+  const uint8_t *nvram_addr;
+  size_t nvram_len;
+  const uint8_t *clm_addr;
+  size_t clm_len;
+};
+
+struct mg_tcpip_driver_cyw_data {
+  struct mg_tcpip_spi_ *spi;
+  struct mg_tcpip_driver_cyw_firmware *fw;
+  char *ssid;
+  char *pass;
+  char *apssid;
+  char *appass;
+  uint8_t security; // TBD
+  uint8_t apsecurity; // TBD
+  uint8_t apchannel;
+  bool apmode;      // start in AP mode; 'false' starts connection to 'ssid' if not NULL
+  bool hs;          // use chip "high-speed" mode; otherwise SPI CPOL0 CPHA0 (DS 4.2.3 Table 6)
+};
+
+#if 0
+#define MG_TCPIP_DRIVER_INIT(mgr)                                 \
+  do {                                                            \
+    static struct mg_tcpip_driver_cyw_data driver_data_;          \
+    static struct mg_tcpip_if mif_;                               \
+    MG_SET_WIFI_CONFIG(&driver_data_);                            \
+    mif_.ip = MG_TCPIP_IP;                                        \
+    mif_.mask = MG_TCPIP_MASK;                                    \
+    mif_.gw = MG_TCPIP_GW;                                        \
+    mif_.driver = &mg_tcpip_driver_pico_w;                        \
+    mif_.driver_data = &driver_data_;                             \
+    mif_.recv_queue.size = 8192;                                  \
+    mif_.mac[0] = 2; /* MAC read from OTP at driver init */       \
+    mg_tcpip_init(mgr, &mif_);                                    \
+    MG_INFO(("Driver: cyw, MAC: %M", mg_print_mac, mif_.mac)); \
+  } while (0)
+#endif
 
 #endif
 
